@@ -1,0 +1,36 @@
+﻿@page "/teachers"
+@using TimetableHelper.Models
+<h3>Učitelé</h3>
+<button onclick="AddTeacher" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
+@if(teachers == null || teachers.Count() == 0)
+{
+    <p>Zatím nebyli přidáni žádní učitelé. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+<table>
+    <thead>
+        <tr>
+            <th>Jméno</th>
+            <th>Předměty</th>
+            <th>Cílový úvazek</th>
+            <th>Aktuální úvazek</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var teacher in teachers)
+        {
+            <tr>
+                <td>@teacher.Name</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+}
+
+@code {
+    List<Teacher>? teachers;
+}

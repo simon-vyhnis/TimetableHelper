@@ -21,7 +21,11 @@ a, .btn-link {
 }
 
 h1 {
-    font-size: 5em;
+    font-size: 4em;
+}
+
+h4 {
+    font-size: 1em;
 }
 
 h1:focus {
@@ -52,4 +56,8 @@ h1:focus {
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
+}
+
+.home-img {
+    max-width: 90%;
 }
