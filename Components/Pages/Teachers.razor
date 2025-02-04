@@ -1,6 +1,9 @@
 ﻿@page "/teachers"
+@using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
 <h3>Učitelé</h3>
 <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
 @if(teachers == null || teachers.Count() == 0)
@@ -47,6 +50,12 @@ else
 
 @code {
     List<Teacher>? teachers;
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        teachers = await context.Teacher.ToListAsync();
+    }
+
     private AddModal modal;
     public Teacher newTeacher = new Teacher();
     private void OpenAddModal()
@@ -54,9 +63,12 @@ else
         newTeacher = new Teacher();
         modal.Open();
     }
-    private void Addteacher(object body)
+    private async void Addteacher(object body)
     {
-        Console.WriteLine(newTeacher.Name);
+        using var context = DbFactory.CreateDbContext();
+        await context.Teacher.AddAsync(newTeacher);
+        context.SaveChanges();
         modal.Close();
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }

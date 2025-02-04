@@ -1,6 +1,9 @@
 ﻿@page "/classes"
+@using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
 <PageTitle>Třídy</PageTitle>
 <h2>Třídy</h2>
 <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat třídu</button>
@@ -10,7 +13,7 @@
 }
 else
 {
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Název</th>
@@ -25,7 +28,7 @@ else
                 <tr>
                     <td>@clas.Name</td>
                     <td>@clas.Grade</td>
-                    <td></td>
+                    <td>@clas.Students.Count()</td>
                     <td></td>
                 </tr>
             }
@@ -54,6 +57,12 @@ else
 
 @code {
     List<Class>? classes;
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        classes = await context.Class.ToListAsync();
+    }
+
     private AddModal modal;
     public Class newClass = new Class();
     private void OpenAddModal()
@@ -61,9 +70,12 @@ else
         newClass = new Class();
         modal.Open();
     }
-    private void AddClass(object body)
+    private async void AddClass(object body)
     {
-        Console.WriteLine(newClass.Name);
+        using var context = DbFactory.CreateDbContext();
+        await context.Class.AddAsync(newClass);
+        context.SaveChanges();
         modal.Close();
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }
