@@ -1,7 +1,53 @@
 ﻿@page "/rooms"
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
 <PageTitle>Učebny</PageTitle>
 <h2>Učebny</h2>
+<button @onclick="@(()=>Modal.Open())" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
+@if (rooms == null || rooms.Count() == 0)
+{
+    <p>Zatím nebyly přidány žádné učebny. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Název</th>
+                <th>Ročník</th>
+                <th>Počet studentů</th>
+                <th>Vytvořený rozvrh</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in rooms)
+            {
+                <tr>
+                    <td>@room.Name</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<AddModal @ref=Modal>
+    <Title>Přidat učebnu</Title>
+    <Body>
+        <div class="mb-3">
+            <label for="roomTitle" class="form-label">Název učebny</label>
+            <input type="text" class="form-control" id="roomTitle" placeholder="Tělocvična">
+        </div>
+        <div class="mb-3">
+            <label for="roomShort" class="form-label">Zkratka učebny</label>
+            <input type="text" class="form-control" id="roomShort" placeholder="Tělocvična">
+        </div>
+    </Body>
+</AddModal>
 
 @code {
-
+    List<Room>? rooms;
+    AddModal Modal;
 }
+    
