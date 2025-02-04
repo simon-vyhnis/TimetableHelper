@@ -15,6 +15,8 @@ namespace TimetableHelper.Data
         }
 
         public DbSet<TimetableHelper.Models.Class> Class { get; set; } = default!;
+        public DbSet<Teacher> Teacher { get; set; } = default!;
+        public DbSet<Student> Student { get; set; } = default!;
 
     }
 }

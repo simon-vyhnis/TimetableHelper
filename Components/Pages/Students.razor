@@ -1,6 +1,9 @@
 ﻿@page "/students"
+@using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
 <PageTitle>Studenti</PageTitle>
 <h2>Studenti</h2>
 <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
@@ -10,7 +13,7 @@
 }
 else
 {
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Jméno</th>
@@ -22,7 +25,7 @@ else
             {
                 <tr>
                     <td>@student.Name</td>
-                    <td>@student.ClassName</td>
+                    <td>@*@student.ClassName*@</td>
                 </tr>
             }
         </tbody>
@@ -44,6 +47,12 @@ else
 
 @code {
     List<Student>? students;
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        students = await context.Student.ToListAsync();
+    }
+
     private AddModal modal;
     public Student newStudent = new Student();
     private void OpenAddModal()
@@ -51,9 +60,12 @@ else
         newStudent = new Student();
         modal.Open();
     }
-    private void AddStudent(object body)
+    private async void AddStudent(object body)
     {
-        Console.WriteLine(newStudent.Name);
+        using var context = DbFactory.CreateDbContext();
+        await context.Student.AddAsync(newStudent);
+        context.SaveChanges();
         modal.Close();
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }
