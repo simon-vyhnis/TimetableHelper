@@ -1,11 +1,12 @@
 ﻿@page "/classes"
+@using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
 <PageTitle>Třídy</PageTitle>
 <h2>Třídy</h2>
-<button onclick="AddClasses" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat třídy</button>
+<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat třídu</button>
 @if (classes == null || classes.Count() == 0)
 {
-    <p>Zatím nebyli přidáni žádné třídy. Pro přidání použijte tlačítko výše.</p>
+    <p>Zatím nebyly přidány žádné třídy. Pro přidání použijte tlačítko výše.</p>
 }
 else
 {
@@ -23,7 +24,7 @@ else
             {
                 <tr>
                     <td>@clas.Name</td>
-                    <td></td>
+                    <td>@clas.Grade</td>
                     <td></td>
                     <td></td>
                 </tr>
@@ -31,7 +32,38 @@ else
         </tbody>
     </table>
 }
+<CascadingValue Value="@newClass">
+    <AddModal @ref=modal SaveMethod="AddClass">
+        <Title>Přidat třídu</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Označení třídy
+                    <input class="form-control" @bind="newClass.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Ročník
+                    <input class="form-control" @bind="newClass.Grade" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
     List<Class>? classes;
+    private AddModal modal;
+    public Class newClass = new Class();
+    private void OpenAddModal()
+    {
+        newClass = new Class();
+        modal.Open();
+    }
+    private void AddClass(object body)
+    {
+        Console.WriteLine(newClass.Name);
+        modal.Close();
+    }
 }
