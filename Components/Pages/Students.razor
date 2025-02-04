@@ -1,7 +1,59 @@
 ﻿@page "/students"
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
 <PageTitle>Studenti</PageTitle>
 <h2>Studenti</h2>
+<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
+@if (students == null || students.Count() == 0)
+{
+    <p>Zatím nebyli přidáni žádní studenti. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Jméno</th>
+                <th>Třída</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in students)
+            {
+                <tr>
+                    <td>@student.Name</td>
+                    <td>@student.ClassName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<CascadingValue Value="@newStudent">
+    <AddModal @ref=modal SaveMethod="AddStudent">
+        <Title>Přidat studenta</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Jméno
+                    <input class="form-control" @bind="newStudent.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
-
+    List<Student>? students;
+    private AddModal modal;
+    public Student newStudent = new Student();
+    private void OpenAddModal()
+    {
+        newStudent = new Student();
+        modal.Open();
+    }
+    private void AddStudent(object body)
+    {
+        Console.WriteLine(newStudent.Name);
+        modal.Close();
+    }
 }
