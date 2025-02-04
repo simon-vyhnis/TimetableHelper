@@ -3,7 +3,7 @@
 @using TimetableHelper.Models
 <PageTitle>Učebny</PageTitle>
 <h2>Učebny</h2>
-<button @onclick="@(()=>Modal.Open())" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
+<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
 @if (rooms == null || rooms.Count() == 0)
 {
     <p>Zatím nebyly přidány žádné učebny. Pro přidání použijte tlačítko výše.</p>
@@ -14,9 +14,8 @@ else
         <thead>
             <tr>
                 <th>Název</th>
-                <th>Ročník</th>
-                <th>Počet studentů</th>
-                <th>Vytvořený rozvrh</th>
+                <th>Zkratka</th>
+                <th>Kapacita</th>
             </tr>
         </thead>
         <tbody>
@@ -24,30 +23,52 @@ else
             {
                 <tr>
                     <td>@room.Name</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>@room.ShortName</td>
+                    <td>@room.Capacity</td>
                 </tr>
             }
         </tbody>
     </table>
 }
-<AddModal @ref=Modal>
-    <Title>Přidat učebnu</Title>
-    <Body>
-        <div class="mb-3">
-            <label for="roomTitle" class="form-label">Název učebny</label>
-            <input type="text" class="form-control" id="roomTitle" placeholder="Tělocvična">
-        </div>
-        <div class="mb-3">
-            <label for="roomShort" class="form-label">Zkratka učebny</label>
-            <input type="text" class="form-control" id="roomShort" placeholder="Tělocvična">
-        </div>
-    </Body>
-</AddModal>
+<CascadingValue Value="@newRoom">
+    <AddModal @ref=modal SaveMethod="AddRoom">
+        <Title>Přidat učebnu</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Název učebny
+                    <input @bind="newRoom.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka
+                    <input @bind="newRoom.ShortName" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Kapacita
+                    <input @bind="newRoom.Capacity" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
-    List<Room>? rooms;
-    AddModal Modal;
+    private List<Room>? rooms;
+    private AddModal modal;
+    public Room newRoom = new Room();
+    private void OpenAddModal()
+    {
+        newRoom = new Room();
+        modal.Open();
+    }
+    private void AddRoom(object body)
+    {
+        Console.WriteLine(newRoom.Name);
+        modal.Close();
+    }
 }
     

@@ -1,4 +1,15 @@
-﻿<div class="modal @modalClass" tabindex="-1"  role="dialog"  style="display:@modalDisplay; overflow-y: auto;">
+﻿@code {
+        [Parameter]
+        public RenderFragment? Title { get; set; }
+        [Parameter]
+        public RenderFragment? Body { get; set; }
+        [Parameter]
+        public Action<object?>? SaveMethod { get; set; }
+        private string modalClass = "";
+        private string modalDisplay = "none";
+        private bool showBackdrop = false;
+}
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -20,15 +31,6 @@
 }
 
 @code {
-    [Parameter]
-    public RenderFragment? Title { get; set; }
-    [Parameter]
-    public RenderFragment? Body { get; set; }
-    [Parameter]
-    public Action<object?>? SaveParentMethod { get; set; }
-    private string modalClass = "";
-    private string modalDisplay = "none";
-    private bool showBackdrop = false;
 
     public void Open()
     {
@@ -46,6 +48,6 @@
 
     private void Save()
     {
-        SaveParentMethod?.Invoke(Body);
+        SaveMethod?.Invoke(Body);
     }
 }
