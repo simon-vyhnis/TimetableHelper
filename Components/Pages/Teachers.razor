@@ -1,7 +1,8 @@
 ﻿@page "/teachers"
+@using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
 <h3>Učitelé</h3>
-<button onclick="AddTeacher" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
+<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
 @if(teachers == null || teachers.Count() == 0)
 {
     <p>Zatím nebyli přidáni žádní učitelé. Pro přidání použijte tlačítko výše.</p>
@@ -30,7 +31,32 @@ else
     </tbody>
 </table>
 }
+<CascadingValue Value="@newTeacher">
+    <AddModal @ref=modal SaveMethod="Addteacher">
+        <Title>Přidat učitele</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Jméno
+                    <input class="form-control" @bind="newTeacher.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
     List<Teacher>? teachers;
+    private AddModal modal;
+    public Teacher newTeacher = new Teacher();
+    private void OpenAddModal()
+    {
+        newTeacher = new Teacher();
+        modal.Open();
+    }
+    private void Addteacher(object body)
+    {
+        Console.WriteLine(newTeacher.Name);
+        modal.Close();
+    }
 }
