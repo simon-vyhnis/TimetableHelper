@@ -12,27 +12,27 @@
 }
 else
 {
-<table>
-    <thead>
-        <tr>
-            <th>Jméno</th>
-            <th>Předměty</th>
-            <th>Cílový úvazek</th>
-            <th>Aktuální úvazek</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach(var teacher in teachers)
-        {
+    <table  class="table">
+        <thead>
             <tr>
-                <td>@teacher.Name</td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <th>Jméno</th>
+                <th>Předměty</th>
+                <th>Cílový úvazek</th>
+                <th>Aktuální úvazek</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach(var teacher in teachers)
+            {
+                <tr>
+                    <td>@teacher.Name</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 <CascadingValue Value="@newTeacher">
     <AddModal @ref=modal SaveMethod="Addteacher">

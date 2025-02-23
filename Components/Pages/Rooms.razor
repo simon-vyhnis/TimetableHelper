@@ -1,6 +1,9 @@
 ﻿@page "/rooms"
+@using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
 <PageTitle>Učebny</PageTitle>
 <h2>Učebny</h2>
 <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
@@ -10,7 +13,7 @@
 }
 else
 {
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Název</th>
@@ -58,6 +61,11 @@ else
 
 @code {
     private List<Room>? rooms;
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        rooms = await context.Room.ToListAsync();
+    }
     private AddModal modal;
     public Room newRoom = new Room();
     private void OpenAddModal()
@@ -65,10 +73,13 @@ else
         newRoom = new Room();
         modal.Open();
     }
-    private void AddRoom(object body)
+    private async void AddRoom(object body)
     {
-        Console.WriteLine(newRoom.Name);
+        using var context = DbFactory.CreateDbContext();
+        await context.Room.AddAsync(newRoom);
+        context.SaveChanges();
         modal.Close();
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }
     

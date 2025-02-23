@@ -25,7 +25,7 @@ else
         <tbody>
             @foreach (var clas in classes)
             {
-                <tr>
+                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}class?id={clas.Id}"))">
                     <td>@clas.Name</td>
                     <td>@clas.Grade</td>
                     <td>@clas.Students.Count()</td>

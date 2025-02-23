@@ -1,0 +1,79 @@
+﻿@page "/class/"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detail třídy</PageTitle>
+
+<div>
+    @if (clas is null)
+    {
+        <p><em>Načítání...</em></p>
+    }
+    else {
+        <div class="row">
+            <div class="col">
+                @if (editMode)
+                {
+                    <label>
+                        Název třídy
+                        <input class="form-control" @bind-value="clas.Name" />
+                    </label>
+                }
+                else
+                {
+                    <h2>Třída @clas.Name</h2>
+                }
+            </div>
+            <div class="col">
+                @if (editMode)
+                {
+                    <button class="btn btn-primary" @onclick="SaveData">Uložit úpravy</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="(()=>editMode=true)">Upravit</button>
+                }
+            </div>
+        </div>
+        <hr />
+        if (editMode)
+        {
+            <label>Ročník
+                <input class="form-control" @bind-value="clas.Grade"/>
+            </label>
+        }
+        else
+        {
+            <p>Ročník: @clas.Grade.</p>
+        }
+    }
+</div>
+
+@code {
+    private Class? clas;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        clas = await context.Class.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (clas is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private bool editMode = false; 
+    protected void SaveData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Class.Update(clas);
+        context.SaveChanges();
+        editMode = false;
+    }
+}
