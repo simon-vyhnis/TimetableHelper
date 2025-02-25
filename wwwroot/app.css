@@ -66,3 +66,17 @@ h1:focus {
     height: 100%;
     max-height: 1.25em; 
 }
+
+.button-col {
+    width: 1%; 
+    white-space: nowrap;
+}
+
+.low-btn {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.clickable {
+    cursor: pointer;
+}

@@ -5,15 +5,25 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Učebny</PageTitle>
-<h2>Učebny</h2>
-<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
-@if (rooms == null || rooms.Count() == 0)
+<div class="row">
+    <div class="col-auto">
+        <h2>Učebny</h2>
+    </div>
+    <div class="col-auto">
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
+    </div>
+</div>
+@if (rooms == null)
+{
+    <p>Načítání...</p>
+}
+else if (rooms.Count() == 0)
 {
     <p>Zatím nebyly přidány žádné učebny. Pro přidání použijte tlačítko výše.</p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-striped table-bordered table-hover">
         <thead>
             <tr>
                 <th>Název</th>
