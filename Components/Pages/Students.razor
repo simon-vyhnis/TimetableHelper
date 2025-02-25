@@ -5,8 +5,14 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Studenti</PageTitle>
-<h2>Studenti</h2>
-<button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
+<div class="row">
+    <div class="col">
+        <h2>Studenti</h2>
+    </div>
+    <div class="col">
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
+    </div>
+</div>
 @if (students == null)
 {
     <p>Načítání...</p>
@@ -22,14 +28,38 @@ else
             <tr>
                 <th>Jméno</th>
                 <th>Třída</th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var student in students)
             {
                 <tr>
-                    <td>@student.Name</td>
-                    <td>@*@student.ClassName*@</td>
+                    <td>
+                        @if (editedStudent == student.Id)
+                        {
+                            <label>
+                                Ročník
+                                <input class="form-control" @bind-value="student.Name" />
+                            </label>
+                        }
+                        else
+                        {
+                            <p>@student.Name</p>
+                        }
+                    </td>
+                    <td>@student?.Class?.Name</td>
+                    <td>
+                        @if (editedStudent == student.Id)
+                        {
+                            <button @onclick="SaveChanges" class="btn btn-primary"><i class="bi bi-floppy-fill"></i> Uložit</button>
+                        }
+                        else
+                        {
+                            <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Upravit</button>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
@@ -51,25 +81,43 @@ else
 
 @code {
     List<Student>? students;
+    private AddModal modal;
+    private int? editedStudent = null;
+    public Student newStudent = new Student();
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
         students = await context.Student.ToListAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private AddModal modal;
-    public Student newStudent = new Student();
     private void OpenAddModal()
     {
         newStudent = new Student();
         modal.Open();
     }
+
     private async void AddStudent(object body)
     {
         using var context = DbFactory.CreateDbContext();
         await context.Student.AddAsync(newStudent);
-        context.SaveChanges();
-        modal.Close();
-        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        await context.SaveChangesAsync();
+        await InvokeAsync(modal.Close);
+        await InvokeAsync(LoadData);
+    }
+
+    private async void SaveChanges()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Update(students.Find(s => s.Id == editedStudent));
+        await context.SaveChangesAsync();
+        await InvokeAsync(()=>editedStudent = null);
+        await InvokeAsync(LoadData);
     }
 }

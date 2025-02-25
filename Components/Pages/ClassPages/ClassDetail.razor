@@ -103,12 +103,13 @@
     }
 
     private bool editMode = false;
-    protected void SaveData()
+    protected async Task SaveData()
     {
         using var context = DbFactory.CreateDbContext();
         context.Class.Update(clas);
-        context.SaveChanges();
-        editMode = false;
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editMode = false);
+        await InvokeAsync(LoadData);
     }
 
     private async void AddStudents(List<int> selectedStudentIds)
