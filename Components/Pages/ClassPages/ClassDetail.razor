@@ -1,5 +1,6 @@
 ﻿@page "/class/"
 @using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -48,32 +49,85 @@
         {
             <p>Ročník: @clas.Grade.</p>
         }
+        <h3>Studenti</h3>
+        <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))">Přiřadit studenty</button>
+        @if(clas.Students.Count > 0)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Jméno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in clas.Students)
+                    {
+                        <tr>
+                            <td>@student.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Zatím do této třídy nebyli přiřazeni žádní studenti.</p>
+        }
+        <h3>Předměty</h3>
     }
 </div>
+<StudentsModal @ref=modal SaveMethod="AddStudents"/>
 
 @code {
     private Class? clas;
+    private StudentsModal modal;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         using var context = DbFactory.CreateDbContext();
-        clas = await context.Class.FirstOrDefaultAsync(m => m.Id == Id);
+        clas = await context.Class.Include(c => c.Students).FirstOrDefaultAsync(m => m.Id == Id);
 
         if (clas is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
+        await InvokeAsync(StateHasChanged);
     }
 
-    private bool editMode = false; 
+    private bool editMode = false;
     protected void SaveData()
     {
         using var context = DbFactory.CreateDbContext();
         context.Class.Update(clas);
         context.SaveChanges();
         editMode = false;
+    }
+
+    private async void AddStudents(List<int> selectedStudentIds)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var students = await context.Student.ToListAsync();
+        foreach(var student in students)
+        {
+            if(selectedStudentIds.Contains(student.Id))
+            {
+                student.ClassId = clas.Id;
+            }
+            else if(student.ClassId == clas.Id)
+            {
+                student.ClassId = null;
+            }
+        }
+        await context.SaveChangesAsync();
+        await InvokeAsync(()=>modal.Close());
+        await InvokeAsync(LoadData);
     }
 }

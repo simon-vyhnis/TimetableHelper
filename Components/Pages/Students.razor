@@ -7,7 +7,11 @@
 <PageTitle>Studenti</PageTitle>
 <h2>Studenti</h2>
 <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
-@if (students == null || students.Count() == 0)
+@if (students == null)
+{
+    <p>Načítání...</p>
+}
+else if (students.Count() == 0)
 {
     <p>Zatím nebyli přidáni žádní studenti. Pro přidání použijte tlačítko výše.</p>
 }
