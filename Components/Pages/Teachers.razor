@@ -30,6 +30,8 @@ else
                 <th>Předměty</th>
                 <th>Cílový úvazek</th>
                 <th>Aktuální úvazek</th>
+                <th class="button-col"></th>
+                <th class="button-col"></th>
             </tr>
         </thead>
         <tbody>
@@ -40,6 +42,19 @@ else
                     <td></td>
                     <td></td>
                     <td></td>
+                    <td class="button-col">
+                        @if (editedStudent == student.Id)
+                        {
+                            <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                        }
+                        else
+                        {
+                            <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                        }
+                    </td>
+                    <td class="button-col">
+                        <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                    </td>
                 </tr>
             }
         </tbody>

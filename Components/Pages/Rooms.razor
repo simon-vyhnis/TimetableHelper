@@ -10,7 +10,7 @@
         <h2>Učebny</h2>
     </div>
     <div class="col-auto">
-        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebny</button>
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-plus-square-fill"></i> Přidat učebnu</button>
     </div>
 </div>
 @if (rooms == null)
@@ -29,6 +29,8 @@ else
                 <th>Název</th>
                 <th>Zkratka</th>
                 <th>Kapacita</th>
+                <th class="button-col"></th>
+                <th class="button-col"></th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +40,19 @@ else
                     <td>@room.Name</td>
                     <td>@room.ShortName</td>
                     <td>@room.Capacity</td>
+                    <td class="button-col">
+                        @if (editedStudent == student.Id)
+                        {
+                            <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                        }
+                        else
+                        {
+                            <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                        }
+                    </td>
+                    <td class="button-col">
+                        <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                    </td>
                 </tr>
             }
         </tbody>

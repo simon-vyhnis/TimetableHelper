@@ -6,6 +6,6 @@
         public string Name { get; set; }
         public int? ClassId { get; set; }
         public Class? Class { get; set; } = null!;
-        public List<Group>? Groups { get; set; }
+        public List<Group>? Groups { get; } = new List<Group>();
     }
 }
