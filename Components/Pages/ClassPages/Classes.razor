@@ -70,7 +70,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        classes = await context.Class.ToListAsync();
+        classes = await context.Class.Include(c => c.Students).ToListAsync();
     }
 
     private AddModal modal;

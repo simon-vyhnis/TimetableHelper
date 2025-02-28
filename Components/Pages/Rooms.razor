@@ -37,9 +37,45 @@ else
             @foreach (var room in rooms)
             {
                 <tr>
-                    <td>@room.Name</td>
-                    <td>@room.ShortName</td>
-                    <td>@room.Capacity</td>
+                    <td>
+                        @if (editedRoom == room.Id)
+                        {
+                            <label>
+                                Název
+                                <input class="form-control" @bind-value="room.Name" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@room.Name</a>
+                        }
+                    </td>
+                    <td>
+                        @if (editedRoom == room.Id)
+                        {
+                            <label>
+                                Zkratka
+                                <input class="form-control" @bind-value="room.ShortName" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@room.ShortName</a>
+                        }
+                    </td>
+                    <td>
+                        @if (editedRoom == room.Id)
+                        {
+                            <label>
+                                Kapacita
+                                <input class="form-control" @bind-value="room.Capacity" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@room.Capacity</a>
+                        }
+                    </td>
                     <td class="button-col">
                         @if (editedRoom == room.Id)
                         {
@@ -51,7 +87,7 @@ else
                         }
                     </td>
                     <td class="button-col">
-                        <button @onclick="(()=>editedRoom = room.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                        <button @onclick="(()=>OpenDeleteModal(room))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 </tr>
             }
@@ -59,7 +95,7 @@ else
     </table>
 }
 <CascadingValue Value="@newRoom">
-    <AddModal @ref=modal SaveMethod="AddRoom">
+    <AddModal @ref=addModal SaveMethod="AddRoom">
         <Title>Přidat učebnu</Title>
         <Body>
             <div class="mb-3">
@@ -83,12 +119,19 @@ else
         </Body>
     </AddModal>
 </CascadingValue>
+<CascadingValue Value="@deletedRoom?.Name">
+    <DeleteModal @ref=deleteModal DeleteMethod="Deleteroom">
+        <ItemToDelete>učebnu @deletedRoom?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
 
 @code {
     private List<Room>? rooms;
-    private AddModal modal;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
     public Room newRoom = new Room();
     private int? editedRoom = null;
+    private Room? deletedRoom = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,7 +148,7 @@ else
     private void OpenAddModal()
     {
         newRoom = new Room();
-        modal.Open();
+        addModal.Open();
     }
 
     private async void AddRoom(object body)
@@ -113,7 +156,7 @@ else
         using var context = DbFactory.CreateDbContext();
         await context.Room.AddAsync(newRoom);
         context.SaveChanges();
-        modal.Close();
+        addModal.Close();
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 
@@ -123,6 +166,22 @@ else
         context.Update(rooms.Find(r => r.Id == editedRoom));
         await context.SaveChangesAsync();
         await InvokeAsync(() => editedRoom = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteModal(Room room)
+    {
+        deletedRoom = room;
+        deleteModal.Open();
+    }
+
+    private async void Deleteroom()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Room.Remove(deletedRoom);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedRoom = null);
+        await InvokeAsync(() => deleteModal.Close());
         await InvokeAsync(LoadData);
     }
 }
