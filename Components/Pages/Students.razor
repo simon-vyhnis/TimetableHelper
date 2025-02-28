@@ -61,7 +61,7 @@ else
                         }
                     </td>
                     <td class="button-col">
-                        <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                        <button @onclick="(()=>OpenDeleteModal(student))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 </tr>
             }
@@ -69,7 +69,7 @@ else
     </table>
 }
 <CascadingValue Value="@newStudent">
-    <AddModal @ref=modal SaveMethod="AddStudent">
+    <AddModal @ref=addModal SaveMethod="AddStudent">
         <Title>Přidat studenta</Title>
         <Body>
             <div class="mb-3">
@@ -81,10 +81,17 @@ else
         </Body>
     </AddModal>
 </CascadingValue>
+<CascadingValue Value="@deletedStudent?.Name">
+    <DeleteModal @ref=deleteModal DeleteMethod="DeleteStudent">
+        <ItemToDelete>studenta @deletedStudent?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
 
 @code {
     List<Student>? students;
-    private AddModal modal;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
+    private Student? deletedStudent = null;
     private int? editedStudent = null;
     public Student newStudent = new Student();
 
@@ -103,7 +110,7 @@ else
     private void OpenAddModal()
     {
         newStudent = new Student();
-        modal.Open();
+        addModal.Open();
     }
 
     private async void AddStudent(object body)
@@ -111,16 +118,32 @@ else
         using var context = DbFactory.CreateDbContext();
         await context.Student.AddAsync(newStudent);
         await context.SaveChangesAsync();
-        await InvokeAsync(modal.Close);
+        await InvokeAsync(addModal.Close);
         await InvokeAsync(LoadData);
     }
 
-    private async void SaveChanges()
+    private async Task SaveChanges()
     {
         using var context = DbFactory.CreateDbContext();
         context.Update(students.Find(s => s.Id == editedStudent));
         await context.SaveChangesAsync();
         await InvokeAsync(()=>editedStudent = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteModal(Student student)
+    {
+        deletedStudent = student;
+        deleteModal.Open();
+    }
+
+    private async void DeleteStudent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Student.Remove(deletedStudent);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedStudent = null);
+        await InvokeAsync(() => deleteModal.Close());
         await InvokeAsync(LoadData);
     }
 }
