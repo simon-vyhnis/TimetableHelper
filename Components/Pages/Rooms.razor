@@ -41,17 +41,17 @@ else
                     <td>@room.ShortName</td>
                     <td>@room.Capacity</td>
                     <td class="button-col">
-                        @if (editedStudent == student.Id)
+                        @if (editedRoom == room.Id)
                         {
                             <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
                         }
                         else
                         {
-                            <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                            <button @onclick="(()=>editedRoom = room.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
                         }
                     </td>
                     <td class="button-col">
-                        <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                        <button @onclick="(()=>editedRoom = room.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 </tr>
             }
@@ -86,18 +86,28 @@ else
 
 @code {
     private List<Room>? rooms;
+    private AddModal modal;
+    public Room newRoom = new Room();
+    private int? editedRoom = null;
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
         rooms = await context.Room.ToListAsync();
+        await InvokeAsync(StateHasChanged);
     }
-    private AddModal modal;
-    public Room newRoom = new Room();
+
     private void OpenAddModal()
     {
         newRoom = new Room();
         modal.Open();
     }
+
     private async void AddRoom(object body)
     {
         using var context = DbFactory.CreateDbContext();
@@ -105,6 +115,15 @@ else
         context.SaveChanges();
         modal.Close();
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
+    }
+
+    private async Task SaveChanges()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Update(rooms.Find(r => r.Id == editedRoom));
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editedRoom = null);
+        await InvokeAsync(LoadData);
     }
 }
     
