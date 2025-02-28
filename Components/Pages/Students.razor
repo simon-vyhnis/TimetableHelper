@@ -103,7 +103,7 @@ else
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        students = await context.Student.ToListAsync();
+        students = await context.Student.Include(s => s.Class).ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

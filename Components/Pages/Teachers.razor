@@ -38,9 +38,33 @@ else
             @foreach(var teacher in teachers)
             {
                 <tr>
-                    <td>@teacher.Name</td>
+                    <td>
+                        @if (editedTeacher == teacher.Id)
+                        {
+                            <label>
+                                Jméno
+                                <input class="form-control" @bind-value="teacher.Name" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@teacher.Name</a>
+                        }
+                    </td>
                     <td></td>
-                    <td></td>
+                    <td>
+                        @if (editedTeacher == teacher.Id)
+                        {
+                            <label>
+                                Cílový úvazek
+                                <input class="form-control" @bind-value="teacher.TargetHours" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@teacher.TargetHours</a>
+                        }
+                    </td>
                     <td></td>
                     <td class="button-col">
                         @if (editedTeacher == teacher.Id)
@@ -53,7 +77,7 @@ else
                         }
                     </td>
                     <td class="button-col">
-                        <button @onclick="(()=>editedTeacher = teacher.Id)" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                        <button @onclick="(()=>OpenDeleteModal(teacher))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 </tr>
             }
@@ -61,7 +85,7 @@ else
     </table>
 }
 <CascadingValue Value="@newTeacher">
-    <AddModal @ref=modal SaveMethod="AddTeacher">
+    <AddModal @ref=addModal SaveMethod="AddTeacher">
         <Title>Přidat učitele</Title>
         <Body>
             <div class="mb-3">
@@ -73,12 +97,19 @@ else
         </Body>
     </AddModal>
 </CascadingValue>
+<CascadingValue Value="@deletedTeacher?.Name">
+    <DeleteModal @ref=deleteModal DeleteMethod="DeleteStudent">
+        <ItemToDelete>učitele @deletedTeacher?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
 
 @code {
     List<Teacher>? teachers;
-    private AddModal modal;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
     public Teacher newTeacher = new Teacher();
     private int? editedTeacher = null;
+    private Teacher? deletedTeacher = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,13 +120,13 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         teachers = await context.Teacher.ToListAsync();
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OpenAddModal()
     {
         newTeacher = new Teacher();
-        modal.Open();
+        addModal.Open();
     }
 
     private async void AddTeacher(object body)
@@ -103,7 +134,7 @@ else
         using var context = DbFactory.CreateDbContext();
         await context.Teacher.AddAsync(newTeacher);
         context.SaveChanges();
-        modal.Close();
+        addModal.Close();
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 
@@ -113,6 +144,22 @@ else
         context.Update(teachers.Find(t => t.Id == editedTeacher));
         await context.SaveChangesAsync();
         await InvokeAsync(() => editedTeacher = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteModal(Teacher teacher)
+    {
+        deletedTeacher = teacher;
+        deleteModal.Open();
+    }
+
+    private async void DeleteStudent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Teacher.Remove(deletedTeacher);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedTeacher = null);
+        await InvokeAsync(() => deleteModal.Close());
         await InvokeAsync(LoadData);
     }
 }
