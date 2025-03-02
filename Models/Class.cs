@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public int Grade { get; set; }
         public List<Student> Students { get; } = new List<Student>();
+        public List<Group> Groups { get; } = new List<Group>();
     }
 }

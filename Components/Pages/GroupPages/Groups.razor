@@ -5,7 +5,7 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Třídy</PageTitle>
-<div class="row">
+<div class="row mb-3">
     <div class="col-auto">
         <h2>Skupiny studentů (mezitřídní)</h2>
         <i>Pouze mezitřídní skupiny, skupiny v rámci jedné třídy lze upravovat a přidávat na stránce dané třídy.</i>
@@ -35,7 +35,7 @@ else
         <tbody>
             @foreach (var clas in groups)
             {
-                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}class?id={clas.Id}"))">
+                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={clas.Id}"))">
                     <td>@clas.Name</td>
                     <td>@clas.Students.Count()</td>
                     <td></td>
@@ -45,12 +45,12 @@ else
     </table>
 }
 <CascadingValue Value="@newGroup">
-    <AddModal @ref=modal SaveMethod="AddClass">
+    <AddModal @ref=modal SaveMethod="AddGroup">
         <Title>Přidat skupinu</Title>
         <Body>
             <div class="mb-3">
                 <label>
-                    Označení třídy
+                    Označení skupiny
                     <input class="form-control" @bind="newGroup.Name" />
                 </label>
             </div>
@@ -62,8 +62,14 @@ else
     List<Group>? groups;
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         using var context = DbFactory.CreateDbContext();
-        groups = await context.Group.ToListAsync();
+        groups = await context.Group.Where(g => g.ClassId == null).ToListAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private AddModal modal;
@@ -73,12 +79,12 @@ else
         newGroup = new Group();
         modal.Open();
     }
-    private async void AddClass(object body)
+    private async void AddGroup(object body)
     {
         using var context = DbFactory.CreateDbContext();
         await context.Group.AddAsync(newGroup);
-        context.SaveChanges();
-        modal.Close();
-        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        await context.SaveChangesAsync();
+        await InvokeAsync(modal.Close);
+        await LoadData();
     }
 }

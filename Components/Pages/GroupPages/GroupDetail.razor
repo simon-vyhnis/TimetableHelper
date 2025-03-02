@@ -8,7 +8,7 @@
 <PageTitle>Detail třídy</PageTitle>
 
 <div>
-    @if (clas is null)
+    @if (group is null)
     {
         <p><em>Načítání...</em></p>
     }
@@ -18,13 +18,17 @@
                 @if (editMode)
                 {
                     <label>
-                        Název třídy
-                        <input class="form-control" @bind-value="clas.Name" />
+                        Název skupiny
+                        <input class="form-control" @bind-value="group.Name" />
                     </label>
                 }
                 else
                 {
-                    <h2>Třída @clas.Name</h2>
+                    <h2>Skupina @group.Name</h2>
+                }
+                @if(group.Class != null)
+                {
+                    <p>V rámci třídy @group.Class.Name</p>
                 }
             </div>
             <div class="col-auto">
@@ -39,25 +43,15 @@
             </div>
         </div>
         <hr />
-        if (editMode)
-        {
-            <label>Ročník
-                <input class="form-control" @bind-value="clas.Grade"/>
-            </label>
-        }
-        else
-        {
-            <p>Ročník: @clas.Grade.</p>
-        }
         <div class="row">
             <div class="col-auto">
                 <h3>Studenti</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
+                <button class="btn btn-primary" @onclick="(()=>modal.Open(group.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
             </div>
         </div>
-        @if(clas.Students.Count > 0)
+        @if(group.Students.Count > 0)
         {
             <table class="table table-striped table-bordered table-hover">
                 <thead>
@@ -66,7 +60,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var student in clas.Students)
+                    @foreach (var student in group.Students)
                     {
                         <tr>
                             <td>@student.Name</td>
@@ -84,24 +78,24 @@
                 <h3>Předměty</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
+                <button class="btn btn-primary" @onclick="(()=>modal.Open(group.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
             </div>
         </div>
-        <div class="row">
-            <div class="col-auto">
-                <h3>Skupiny</h3>
-            </div>
-            <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat skupinu</button>
-            </div>
-        </div>
+        @if (group.Class != null)
+        {
+            <StudentsModal @ref=modal SaveMethod="AddStudents" Students="group.Class.Students" />
+        }
+        else
+        {
+            <StudentsModal @ref=modal SaveMethod="AddStudents" />
+        }
     }
 </div>
-<StudentsModal @ref=modal SaveMethod="AddStudents"/>
 
 @code {
-    private Class? clas;
+    private Group? group;
     private StudentsModal modal;
+    private bool editMode = false;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -114,20 +108,19 @@
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        clas = await context.Class.Include(c => c.Students).FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (clas is null)
+        group = await context.Group.Include(c => c.Students).Include(c => c.Class.Students).FirstOrDefaultAsync(m => m.Id == Id);
+        if (group is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
         await InvokeAsync(StateHasChanged);
     }
 
-    private bool editMode = false;
     protected async Task SaveData()
     {
         using var context = DbFactory.CreateDbContext();
-        context.Class.Update(clas);
+        context.Attach(group);
+        context.Group.Update(group);
         await context.SaveChangesAsync();
         await InvokeAsync(() => editMode = false);
         await InvokeAsync(LoadData);
@@ -136,16 +129,17 @@
     private async void AddStudents(List<int> selectedStudentIds)
     {
         using var context = DbFactory.CreateDbContext();
-        var students = await context.Student.ToListAsync();
+        context.Attach(group);
+        var students = await context.Student.Include(s => s.Groups).ToListAsync();
         foreach(var student in students)
         {
-            if(selectedStudentIds.Contains(student.Id))
+            if (selectedStudentIds.Contains(student.Id) && !student.Groups.Any(g => g.Id == group.Id))
             {
-                student.ClassId = clas.Id;
+                student.Groups.Add(group);
             }
-            else if(student.ClassId == clas.Id)
+            else if (!selectedStudentIds.Contains(student.Id) && student.Groups.Any(g => g.Id == group.Id))
             {
-                student.ClassId = null;
+                student.Groups.RemoveAll(g => g.Id == group.Id);
             }
         }
         await context.SaveChangesAsync();

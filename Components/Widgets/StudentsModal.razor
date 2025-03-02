@@ -4,6 +4,8 @@
 @code {
     [Parameter]
     public Action<List<int>>? SaveMethod { get; set; }
+    [Parameter]
+    public List<Student>? Students { get; set; } = null;
 
     private string modalClass = "";
     private string modalDisplay = "none";
@@ -16,13 +18,13 @@
                 <h3>Přiřadit studenty</h3>
             </div>
             <div class="modal-body">
-                @if (students == null)
+                @if (Students == null)
                 {
                     <p>Načítání...</p>
                 }
-                else if (students.Count() == 0)
+                else if (Students.Count() == 0)
                 {
-                    <p>Zatím nebyli přidáni žádní studenti. Pro přidání použijte tlačítko výše.</p>
+                    <p>Žádní dostupní studenti pro přiřazení. Pro přidání studentů přejděte na stránku Studenti.</p>
                 }
                 else
                 {
@@ -34,7 +36,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var student in students)
+                            @foreach (var student in Students)
                             {
                                 <tr>
                                     <td>@student.Name</td>
@@ -60,13 +62,15 @@
 }
 
 @code {
-    private List<Student>? students;
     private List<int> selectedStudentsIds = new List<int>();
+
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        students = await context.Student.ToListAsync();
-        Console.WriteLine(students.Count());
+        if (Students == null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            Students = await context.Student.ToListAsync();
+        }
     }
 
     public void Open(List<Student> selectedStudents)

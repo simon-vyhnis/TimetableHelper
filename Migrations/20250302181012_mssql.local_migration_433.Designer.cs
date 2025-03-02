@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TimetableHelper.Data;
 
@@ -11,9 +12,11 @@ using TimetableHelper.Data;
 namespace TimetableHelper.Migrations
 {
     [DbContext(typeof(TimetableHelperContext))]
-    partial class TimetableHelperContextModelSnapshot : ModelSnapshot
+    [Migration("20250302181012_mssql.local_migration_433")]
+    partial class mssqllocal_migration_433
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

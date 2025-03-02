@@ -54,7 +54,7 @@
                 <h3>Studenti</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
+                <button class="btn btn-primary" @onclick="(()=>addStudentsModal.Open(clas.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
             </div>
         </div>
         @if(clas.Students.Count > 0)
@@ -84,7 +84,7 @@
                 <h3>Předměty</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
+                <button class="btn btn-primary" @onclick="(()=>addStudentsModal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
             </div>
         </div>
         <div class="row">
@@ -92,16 +92,59 @@
                 <h3>Skupiny</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>modal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat skupinu</button>
+                <button class="btn btn-primary" @onclick="OpenGroupAddModal"><i class="bi bi-plus-square-fill" /> Přidat skupinu</button>
             </div>
         </div>
+        if (groups.Count() == 0)
+        {
+            <p>Zatím nebyly přidány žádné skupiny. Pro přidání použijte tlačítko výše.</p>
+        }
+        else
+        {
+            <table class="table table-striped table-bordered table-hover clickable">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Počet studentů</th>
+                        <th>Vytvořený rozvrh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var clas in groups)
+                    {
+                        <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={clas.Id}"))">
+                            <td>@clas.Name</td>
+                            <td>@clas.Students.Count()</td>
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     }
 </div>
-<StudentsModal @ref=modal SaveMethod="AddStudents"/>
+<StudentsModal @ref=addStudentsModal SaveMethod="AddStudents"/>
+<CascadingValue Value="@newGroup">
+    <AddModal @ref=addGroupModal SaveMethod="AddGroup">
+        <Title>Přidat skupinu</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Označení skupiny
+                    <input class="form-control" @bind="newGroup.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
     private Class? clas;
-    private StudentsModal modal;
+    private List<Group>? groups;
+    private StudentsModal addStudentsModal;
+    private AddModal? addGroupModal;
+    private bool editMode = false;
+    private Group newGroup = new Group();
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -115,15 +158,14 @@
     {
         using var context = DbFactory.CreateDbContext();
         clas = await context.Class.Include(c => c.Students).FirstOrDefaultAsync(m => m.Id == Id);
-
         if (clas is null)
         {
             NavigationManager.NavigateTo("notfound");
         }
+        groups = await context.Group.Where(g => g.Class.Id == clas.Id).ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private bool editMode = false;
     protected async Task SaveData()
     {
         using var context = DbFactory.CreateDbContext();
@@ -149,7 +191,23 @@
             }
         }
         await context.SaveChangesAsync();
-        await InvokeAsync(()=>modal.Close());
+        await InvokeAsync(()=>addStudentsModal.Close());
         await InvokeAsync(LoadData);
+    }
+
+    private void OpenGroupAddModal()
+    {
+        newGroup = new Group();
+        newGroup.ClassId = clas.Id;
+        addGroupModal.Open();
+    }
+
+    private async void AddGroup(object body)
+    {
+        using var context = DbFactory.CreateDbContext();
+        await context.Group.AddAsync(newGroup);
+        await context.SaveChangesAsync();
+        await InvokeAsync(addGroupModal.Close);
+        await LoadData();
     }
 }

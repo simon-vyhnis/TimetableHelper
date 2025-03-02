@@ -5,5 +5,7 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public List<Student> Students { get; } = new List<Student>();
+        public Class? Class { get; set; }
+        public int? ClassId { get; set; }
     }
 }
