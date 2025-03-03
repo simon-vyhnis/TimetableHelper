@@ -32,10 +32,24 @@ namespace TimetableHelper.Data
             modelBuilder.Entity<Student>()
                 .HasMany(e => e.Groups)
                 .WithMany(e => e.Students);
+
             modelBuilder.Entity<Class>()
                 .HasMany(e => e.Groups)
                 .WithOne(e => e.Class)
                 .HasForeignKey(e => e.ClassId);
+
+            modelBuilder.Entity<Subject>()
+                .HasOne(e => e.Class)
+                .WithMany(e => e.Subjects);
+
+            modelBuilder.Entity<Subject>()
+                .HasOne(e => e.Group)
+                .WithMany(e => e.Subjects);
+
+            modelBuilder.Entity<Subject>()
+                .HasOne(e => e.Teacher)
+                .WithMany(e => e.Subjects);
+
         }
     }
 }
