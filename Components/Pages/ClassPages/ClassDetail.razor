@@ -89,7 +89,7 @@
         </div>
         @if (clas.Subjects.Count() == 0)
         {
-            <p>Zatím nebyly přidány žádné skupiny. Pro přidání použijte tlačítko výše.</p>
+            <p>Zatím nebyly přidány žádné předměty. Pro přidání použijte tlačítko výše.</p>
         }
         else
         {
@@ -106,10 +106,58 @@
                     @foreach (var subject in clas.Subjects)
                     {
                         <tr>
-                            <td>@subject.Name</td>
-                            <td>@subject.ShortName</td>
-                            <td>@subject.LessonCount</td>
-                            <td>@subject.Teacher.Name</td>
+                            <td>
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Název
+                                        <input class="form-control" @bind-value="subject.Name" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.Name
+                                }
+                            </td>
+                            <td>
+                            @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Zkratka
+                                        <input class="form-control" @bind-value="subject.ShortName" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.ShortName
+                                }
+                            </td>
+                            <td>
+                            @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Počet Hodin
+                                        <input class="form-control" @bind-value="subject.LessonCount" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.LessonCount
+                                }
+                            </td>
+                            <td>
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Učitel
+                                        <TeacherSelect SelectedTeacherId="subject.Teacher?.Id" SelectTeacherMethod="t => subject.TeacherId = t.Id" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.Teacher.Name
+                                }
+                            </td>
                             <td class="button-col">
                                 @if (editedSubject == subject.Id)
                                 {
@@ -207,7 +255,7 @@
             <div class="mb-3">
                 <label>
                     Učitel
-                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.Teacher = t"/>
+                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.TeacherId = t.Id"/>
                 </label>
             </div>
         </Body>
@@ -230,7 +278,7 @@
     private Group newGroup = new Group();
     private Subject newSubject = new Subject();
     private bool displayNewSubjectError = false;
-    private int editedSubject;
+    private int? editedSubject = null;
     private Subject deletedSubject;
 
     [SupplyParameterFromQuery]
@@ -248,6 +296,7 @@
             .Include(c => c.Students)
             .Include(c => c.Subjects)
             .ThenInclude(s => s.Teacher)
+            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == Id);
         if (clas is null)
         {
@@ -334,7 +383,13 @@
 
     private async void SaveSubjectChanges()
     {
-
+        using var context = DbFactory.CreateDbContext();
+        var subject = clas.Subjects.Find(s => s.Id == editedSubject);
+        subject.Teacher = null;
+        context.Update(subject);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editedSubject = null);
+        await InvokeAsync(LoadData);
     }
 
     private void OpenDeleteSubjectModal(Subject subject)

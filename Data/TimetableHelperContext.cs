@@ -49,7 +49,8 @@ namespace TimetableHelper.Data
 
             modelBuilder.Entity<Subject>()
                 .HasOne(e => e.Teacher)
-                .WithMany(e => e.Subjects);
+                .WithMany(e => e.Subjects)
+                .HasForeignKey(e => e.TeacherId);
 
         }
     }
