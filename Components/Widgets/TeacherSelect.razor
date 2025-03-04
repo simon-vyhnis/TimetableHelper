@@ -1,0 +1,49 @@
+﻿@using TimetableHelper.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+
+@code {
+    [Parameter]
+    public Action<Teacher>? SelectTeacherMethod { get; set; }
+    [Parameter]
+    public int? SelectedTeacherId { get; set; }
+}
+
+@if (teachers == null)
+{
+    <p>Načítání...</p>
+}
+else if (teachers.Count() == 0)
+{
+    <p>Žádní dostupní učitelé pro přiřazení. Pro přidání učitelů přejděte na stránku Učitelé.</p>
+}
+else
+{
+    <select class="form-select" aria-label="Vybrat učitele" @onchange="(e) => FormChanged(Int32.Parse(e.Value.ToString()))">
+        @foreach (var teacher in teachers)
+        {
+            <option value="@teacher.Id" selected="@(teacher.Id == SelectedTeacherId)">@teacher.Name</option>
+        }
+    </select>
+}
+
+@code {
+    private List<Teacher>? teachers = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        teachers = await context.Teacher.ToListAsync();
+        if (SelectedTeacherId == null && teachers.Count() != 0)
+        {
+            SelectedTeacherId = teachers[0].Id;
+            SelectTeacherMethod?.Invoke(teachers.FirstOrDefault(t => t.Id == SelectedTeacherId));
+        }
+    }
+
+    private void FormChanged(int teacherId)
+    {
+        SelectedTeacherId = teacherId;
+        SelectTeacherMethod?.Invoke(teachers.FirstOrDefault(t => t.Id == teacherId));
+    }
+}
