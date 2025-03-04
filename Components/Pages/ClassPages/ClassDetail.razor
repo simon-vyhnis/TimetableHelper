@@ -213,6 +213,11 @@
         </Body>
     </AddModal>
 </CascadingValue>
+<CascadingValue Value="@deletedSubject?.Name">
+    <DeleteModal @ref=deleteSubjectModal DeleteMethod="DeleteSubject">
+        <ItemToDelete>předmět @deletedSubject?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
 
 @code {
     private Class? clas;
@@ -220,11 +225,13 @@
     private StudentsModal? addStudentsModal;
     private AddModal? addGroupModal;
     private AddModal? addSubjectModal;
+    private DeleteModal deleteSubjectModal;
     private bool editMode = false;
     private Group newGroup = new Group();
     private Subject newSubject = new Subject();
     private bool displayNewSubjectError = false;
     private int editedSubject;
+    private Subject deletedSubject;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -332,6 +339,17 @@
 
     private void OpenDeleteSubjectModal(Subject subject)
     {
-        
+        deletedSubject = subject;
+        deleteSubjectModal.Open();
+    }
+
+    private async void DeleteSubject()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Subject.Remove(deletedSubject);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedSubject = null);
+        await InvokeAsync(() => deleteSubjectModal.Close());
+        await InvokeAsync(LoadData);
     }
 }
