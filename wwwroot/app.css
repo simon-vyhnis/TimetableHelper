@@ -21,7 +21,11 @@ a, .btn-link {
 }
 
 h1 {
-    font-size: 5em;
+    font-size: 4em;
+}
+
+h4 {
+    font-size: 1em;
 }
 
 h1:focus {
@@ -52,4 +56,27 @@ h1:focus {
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
+}
+
+.home-img {
+    max-width: 90%;
+}
+
+.navbar-brand img {
+    height: 100%;
+    max-height: 1.25em; 
+}
+
+.button-col {
+    width: 1%; 
+    white-space: nowrap;
+}
+
+.low-btn {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.clickable {
+    cursor: pointer;
 }

@@ -1,0 +1,90 @@
+﻿@page "/groups"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+<PageTitle>Třídy</PageTitle>
+<div class="row mb-3">
+    <div class="col-auto">
+        <h2>Skupiny studentů (mezitřídní)</h2>
+        <i>Pouze mezitřídní skupiny, skupiny v rámci jedné třídy lze upravovat a přidávat na stránce dané třídy.</i>
+    </div>
+    <div class="col-auto">
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-clipboard-plus-fill"/> Přidat skupinu</button>
+    </div>
+</div>
+@if (groups == null)
+{
+    <p>Načítání...</p>
+}
+else if (groups.Count() == 0)
+{
+    <p>Zatím nebyly přidány žádné skupiny. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered table-hover clickable">
+        <thead>
+            <tr>
+                <th>Název</th>
+                <th>Počet studentů</th>
+                <th>Vytvořený rozvrh</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in groups)
+            {
+                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
+                    <td>@group.Name</td>
+                    <td>@group.Students.Count()</td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<CascadingValue Value="@newGroup">
+    <AddModal @ref=modal SaveMethod="AddGroup">
+        <Title>Přidat skupinu</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Označení skupiny
+                    <input class="form-control" @bind="newGroup.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+
+@code {
+    List<Group>? groups;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        groups = await context.Group.Where(g => g.ClassId == null).ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private AddModal modal;
+    public Group newGroup = new Group();
+    private void OpenAddModal()
+    {
+        newGroup = new Group();
+        modal.Open();
+    }
+    private async void AddGroup(object body)
+    {
+        using var context = DbFactory.CreateDbContext();
+        await context.Group.AddAsync(newGroup);
+        await context.SaveChangesAsync();
+        await InvokeAsync(modal.Close);
+        await LoadData();
+    }
+}

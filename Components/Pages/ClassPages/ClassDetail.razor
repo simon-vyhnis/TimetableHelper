@@ -1,0 +1,410 @@
+﻿@page "/class/"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detail třídy</PageTitle>
+
+<div>
+    @if (clas is null)
+    {
+        <p><em>Načítání...</em></p>
+    }
+    else {
+        <div class="row">
+            <div class="col-auto">
+                @if (editMode)
+                {
+                    <label>
+                        Název třídy
+                        <input class="form-control" @bind-value="clas.Name" />
+                    </label>
+                }
+                else
+                {
+                    <h2>Třída @clas.Name</h2>
+                }
+            </div>
+            <div class="col-auto">
+                @if (editMode)
+                {
+                    <button class="btn btn-primary" @onclick="SaveData"><i class="bi bi-floppy-fill"/> Uložit úpravy</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="(()=>editMode=true)"><i class="bi bi-pencil-square"/> Upravit</button>
+                }
+            </div>
+        </div>
+        <hr />
+        if (editMode)
+        {
+            <label>Ročník
+                <input class="form-control" @bind-value="clas.Grade"/>
+            </label>
+        }
+        else
+        {
+            <p>Ročník: @clas.Grade.</p>
+        }
+        <div class="row mb-2">
+            <div class="col-auto">
+                <h3>Studenti</h3>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="(()=>addStudentsModal.Open(clas.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
+            </div>
+        </div>
+        @if(clas.Students.Count > 0)
+        {
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Jméno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in clas.Students)
+                    {
+                        <tr>
+                            <td>@student.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Zatím do této třídy nebyli přiřazeni žádní studenti.</p>
+        }
+        <div class="row mb-2">
+            <div class="col-auto">
+                <h3>Předměty</h3>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="OpenSubjectAddModal"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
+            </div>
+        </div>
+        @if (clas.Subjects.Count() == 0)
+        {
+            <p>Zatím nebyly přidány žádné předměty. Pro přidání použijte tlačítko výše.</p>
+        }
+        else
+        {
+            <table class="table table-striped table-bordered table-hover clickable">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Zkratka</th>
+                        <th>Počet hodin</th>
+                        <th>Učitel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var subject in clas.Subjects)
+                    {
+                        <tr>
+                            <td>
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Název
+                                        <input class="form-control" @bind-value="subject.Name" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.Name
+                                }
+                            </td>
+                            <td>
+                            @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Zkratka
+                                        <input class="form-control" @bind-value="subject.ShortName" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.ShortName
+                                }
+                            </td>
+                            <td>
+                            @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Počet Hodin
+                                        <input class="form-control" @bind-value="subject.LessonCount" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.LessonCount
+                                }
+                            </td>
+                            <td>
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <label>
+                                        Učitel
+                                        <TeacherSelect SelectedTeacherId="subject.Teacher?.Id" SelectTeacherMethod="t => subject.TeacherId = t.Id" />
+                                    </label>
+                                }
+                                else
+                                {
+                                    @subject.Teacher.Name
+                                }
+                            </td>
+                            <td class="button-col">
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <button @onclick="SaveSubjectChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                                }
+                                else
+                                {
+                                    <button @onclick="(()=>editedSubject = subject.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                                }
+                            </td>
+                            <td class="button-col">
+                                <button @onclick="(()=>OpenDeleteSubjectModal(subject))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        <div class="row mb-2">
+            <div class="col-auto">
+                <h3>Skupiny</h3>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="OpenGroupAddModal"><i class="bi bi-plus-square-fill" /> Přidat skupinu</button>
+            </div>
+        </div>
+        if (groups.Count() == 0)
+        {
+            <p>Zatím nebyly přidány žádné skupiny. Pro přidání použijte tlačítko výše.</p>
+        }
+        else
+        {
+            <table class="table table-striped table-bordered table-hover clickable">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Počet studentů</th>
+                        <th>Vytvořený rozvrh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var group in groups)
+                    {
+                        <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
+                            <td>@group.Name</td>
+                            <td>@group.Students.Count()</td>
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>
+<StudentsModal @ref=addStudentsModal SaveMethod="AddStudents"/>
+<CascadingValue Value="@newGroup">
+    <AddModal @ref=addGroupModal SaveMethod="AddGroup">
+        <Title>Přidat skupinu</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Označení skupiny
+                    <input class="form-control" @bind="newGroup.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+<CascadingValue Value="@newSubject">
+    <AddModal @ref=addSubjectModal SaveMethod="AddSubject">
+        <Title>Přidat skupinu</Title>
+        <Body>
+            @if (displayNewSubjectError)
+            {
+                <p>Je nutné vybrat učitele!</p>
+            }
+            <div class="mb-3">
+                <label>
+                    Název předmětu
+                    <input class="form-control" @bind="newSubject.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka předmětu
+                    <input class="form-control" @bind="newSubject.ShortName" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Počet hodin
+                    <input class="form-control" @bind="newSubject.LessonCount" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Učitel
+                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.TeacherId = t.Id"/>
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+<CascadingValue Value="@deletedSubject?.Name">
+    <DeleteModal @ref=deleteSubjectModal DeleteMethod="DeleteSubject">
+        <ItemToDelete>předmět @deletedSubject?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
+
+@code {
+    private Class? clas;
+    private List<Group>? groups;
+    private StudentsModal? addStudentsModal;
+    private AddModal? addGroupModal;
+    private AddModal? addSubjectModal;
+    private DeleteModal deleteSubjectModal;
+    private bool editMode = false;
+    private Group newGroup = new Group();
+    private Subject newSubject = new Subject();
+    private bool displayNewSubjectError = false;
+    private int? editedSubject = null;
+    private Subject deletedSubject;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        clas = await context.Class
+            .Include(c => c.Students)
+            .Include(c => c.Subjects)
+            .ThenInclude(s => s.Teacher)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == Id);
+        if (clas is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        groups = await context.Group.Where(g => g.Class.Id == clas.Id).ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task SaveData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Class.Update(clas);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editMode = false);
+        await InvokeAsync(LoadData);
+    }
+
+    private async void AddStudents(List<int> selectedStudentIds)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var students = await context.Student.ToListAsync();
+        foreach(var student in students)
+        {
+            if(selectedStudentIds.Contains(student.Id))
+            {
+                student.ClassId = clas.Id;
+            }
+            else if(student.ClassId == clas.Id)
+            {
+                student.ClassId = null;
+            }
+        }
+        await context.SaveChangesAsync();
+        await InvokeAsync(()=>addStudentsModal.Close());
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenGroupAddModal()
+    {
+        newGroup = new Group();
+        newGroup.ClassId = clas.Id;
+        addGroupModal.Open();
+    }
+
+    private async void AddGroup(object body)
+    {
+        using var context = DbFactory.CreateDbContext();
+        await context.Group.AddAsync(newGroup);
+        await context.SaveChangesAsync();
+        await InvokeAsync(addGroupModal.Close);
+        await LoadData();
+    }
+
+    private void OpenSubjectAddModal()
+    {
+        Teacher lastTeacher = newSubject.Teacher;
+        displayNewSubjectError = false;
+        newSubject = new Subject();
+        if(lastTeacher != null)
+        {
+            newSubject.Teacher = lastTeacher;
+        }
+        addSubjectModal.Open();
+    }
+
+    private async void AddSubject(object body)
+    {
+        if (newSubject.Teacher != null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.Attach(newSubject.Teacher);
+            newSubject.Class = await context.Class.FirstOrDefaultAsync(m => m.Id == Id);
+            await context.Subject.AddAsync(newSubject);
+            await context.SaveChangesAsync();
+            await InvokeAsync(addSubjectModal.Close);
+            await LoadData();
+        }
+        else
+        {
+            displayNewSubjectError = true;
+        }
+    }
+
+    private async void SaveSubjectChanges()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var subject = clas.Subjects.Find(s => s.Id == editedSubject);
+        subject.Teacher = null;
+        context.Update(subject);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editedSubject = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteSubjectModal(Subject subject)
+    {
+        deletedSubject = subject;
+        deleteSubjectModal.Open();
+    }
+
+    private async void DeleteSubject()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Subject.Remove(deletedSubject);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedSubject = null);
+        await InvokeAsync(() => deleteSubjectModal.Close());
+        await InvokeAsync(LoadData);
+    }
+}

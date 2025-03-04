@@ -1,0 +1,149 @@
+﻿@page "/group/"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detail třídy</PageTitle>
+
+<div>
+    @if (group is null)
+    {
+        <p><em>Načítání...</em></p>
+    }
+    else {
+        <div class="row">
+            <div class="col-auto">
+                @if (editMode)
+                {
+                    <label>
+                        Název skupiny
+                        <input class="form-control" @bind-value="group.Name" />
+                    </label>
+                }
+                else
+                {
+                    <h2>Skupina @group.Name</h2>
+                }
+                @if(group.Class != null)
+                {
+                    <p>V rámci třídy @group.Class.Name</p>
+                }
+            </div>
+            <div class="col-auto">
+                @if (editMode)
+                {
+                    <button class="btn btn-primary" @onclick="SaveData"><i class="bi bi-floppy-fill"/> Uložit úpravy</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" @onclick="(()=>editMode=true)"><i class="bi bi-pencil-square"/> Upravit</button>
+                }
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-auto">
+                <h3>Studenti</h3>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="(()=>modal.Open(group.Students))"><i class="bi bi-person-plus-fill" /> Přiřadit studenty</button>
+            </div>
+        </div>
+        @if(group.Students.Count > 0)
+        {
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Jméno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in group.Students)
+                    {
+                        <tr>
+                            <td>@student.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Zatím do této třídy nebyli přiřazeni žádní studenti.</p>
+        }
+        <div class="row">
+            <div class="col-auto">
+                <h3>Předměty</h3>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="(()=>modal.Open(group.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
+            </div>
+        </div>
+        @if (group.Class != null)
+        {
+            <StudentsModal @ref=modal SaveMethod="AddStudents" Students="group.Class.Students" />
+        }
+        else
+        {
+            <StudentsModal @ref=modal SaveMethod="AddStudents" />
+        }
+    }
+</div>
+
+@code {
+    private Group? group;
+    private StudentsModal modal;
+    private bool editMode = false;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        group = await context.Group.Include(c => c.Students).Include(c => c.Class.Students).FirstOrDefaultAsync(m => m.Id == Id);
+        if (group is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task SaveData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(group);
+        context.Group.Update(group);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editMode = false);
+        await InvokeAsync(LoadData);
+    }
+
+    private async void AddStudents(List<int> selectedStudentIds)
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(group);
+        var students = await context.Student.Include(s => s.Groups).ToListAsync();
+        foreach(var student in students)
+        {
+            if (selectedStudentIds.Contains(student.Id) && !student.Groups.Any(g => g.Id == group.Id))
+            {
+                student.Groups.Add(group);
+            }
+            else if (!selectedStudentIds.Contains(student.Id) && student.Groups.Any(g => g.Id == group.Id))
+            {
+                student.Groups.RemoveAll(g => g.Id == group.Id);
+            }
+        }
+        await context.SaveChangesAsync();
+        await InvokeAsync(()=>modal.Close());
+        await InvokeAsync(LoadData);
+    }
+}

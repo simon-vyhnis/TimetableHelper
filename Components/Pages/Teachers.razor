@@ -1,0 +1,165 @@
+﻿@page "/teachers"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+<PageTitle>Učitelé</PageTitle>
+<div class="row">
+    <div class="col-auto">
+        <h3>Učitelé</h3>
+    </div>
+    <div class="col-auto">
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
+    </div>
+</div>
+@if(teachers == null)
+{
+    <p>Načítání...</p>
+}
+else if (teachers.Count() == 0)
+{
+    <p>Zatím nebyli přidáni žádní učitelé. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Jméno</th>
+                <th>Předměty</th>
+                <th>Cílový úvazek</th>
+                <th>Aktuální úvazek</th>
+                <th class="button-col"></th>
+                <th class="button-col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var teacher in teachers)
+            {
+                <tr>
+                    <td>
+                        @if (editedTeacher == teacher.Id)
+                        {
+                            <label>
+                                Jméno
+                                <input class="form-control" @bind-value="teacher.Name" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@teacher.Name</a>
+                        }
+                    </td>
+                    <td></td>
+                    <td>
+                        @if (editedTeacher == teacher.Id)
+                        {
+                            <label>
+                                Cílový úvazek
+                                <input class="form-control" @bind-value="teacher.TargetHours" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@teacher.TargetHours</a>
+                        }
+                    </td>
+                    <td></td>
+                    <td class="button-col">
+                        @if (editedTeacher == teacher.Id)
+                        {
+                            <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                        }
+                        else
+                        {
+                            <button @onclick="(()=>editedTeacher = teacher.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                        }
+                    </td>
+                    <td class="button-col">
+                        <button @onclick="(()=>OpenDeleteModal(teacher))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<CascadingValue Value="@newTeacher">
+    <AddModal @ref=addModal SaveMethod="AddTeacher">
+        <Title>Přidat učitele</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Jméno
+                    <input class="form-control" @bind="newTeacher.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+<CascadingValue Value="@deletedTeacher?.Name">
+    <DeleteModal @ref=deleteModal DeleteMethod="DeleteStudent">
+        <ItemToDelete>učitele @deletedTeacher?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
+
+@code {
+    List<Teacher>? teachers;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
+    public Teacher newTeacher = new Teacher();
+    private int? editedTeacher = null;
+    private Teacher? deletedTeacher = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        teachers = await context.Teacher.ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenAddModal()
+    {
+        newTeacher = new Teacher();
+        addModal.Open();
+    }
+
+    private async void AddTeacher(object body)
+    {
+        using var context = DbFactory.CreateDbContext();
+        await context.Teacher.AddAsync(newTeacher);
+        context.SaveChanges();
+        addModal.Close();
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+    }
+
+    private async Task SaveChanges()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Update(teachers.Find(t => t.Id == editedTeacher));
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => editedTeacher = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteModal(Teacher teacher)
+    {
+        deletedTeacher = teacher;
+        deleteModal.Open();
+    }
+
+    private async void DeleteStudent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Teacher.Remove(deletedTeacher);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedTeacher = null);
+        await InvokeAsync(() => deleteModal.Close());
+        await InvokeAsync(LoadData);
+    }
+}

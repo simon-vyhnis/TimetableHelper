@@ -1,7 +1,149 @@
 ﻿@page "/students"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
 <PageTitle>Studenti</PageTitle>
-<h2>Studenti</h2>
+<div class="row">
+    <div class="col-auto">
+        <h2>Studenti</h2>
+    </div>
+    <div class="col-auto">
+        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
+    </div>
+</div>
+@if (students == null)
+{
+    <p>Načítání...</p>
+}
+else if (students.Count() == 0)
+{
+    <p>Zatím nebyli přidáni žádní studenti. Pro přidání použijte tlačítko výše.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Jméno</th>
+                <th>Třída</th>
+                <th class="button-col"></th>
+                <th class="button-col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in students)
+            {
+                <tr>
+                    <td>
+                        @if (editedStudent == student.Id)
+                        {
+                            <label>
+                                Jméno
+                                <input class="form-control" @bind-value="student.Name" />
+                            </label>
+                        }
+                        else
+                        {
+                            <a>@student.Name</a>
+                        }
+                    </td>
+                    <td>@student?.Class?.Name</td>
+                    <td class="button-col">
+                        @if (editedStudent == student.Id)
+                        {
+                            <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                        }
+                        else
+                        {
+                            <button @onclick="(()=>editedStudent = student.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                        }
+                    </td>
+                    <td class="button-col">
+                        <button @onclick="(()=>OpenDeleteModal(student))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<CascadingValue Value="@newStudent">
+    <AddModal @ref=addModal SaveMethod="AddStudent">
+        <Title>Přidat studenta</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Jméno
+                    <input class="form-control" @bind="newStudent.Name" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+<CascadingValue Value="@deletedStudent?.Name">
+    <DeleteModal @ref=deleteModal DeleteMethod="DeleteStudent">
+        <ItemToDelete>studenta @deletedStudent?.Name</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
 
 @code {
+    List<Student>? students;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
+    private Student? deletedStudent = null;
+    private int? editedStudent = null;
+    public Student newStudent = new Student();
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        students = await context.Student.Include(s => s.Class).ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenAddModal()
+    {
+        newStudent = new Student();
+        addModal.Open();
+    }
+
+    private async void AddStudent(object body)
+    {
+        using var context = DbFactory.CreateDbContext();
+        await context.Student.AddAsync(newStudent);
+        await context.SaveChangesAsync();
+        await InvokeAsync(addModal.Close);
+        await InvokeAsync(LoadData);
+    }
+
+    private async Task SaveChanges()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Update(students.Find(s => s.Id == editedStudent));
+        await context.SaveChangesAsync();
+        await InvokeAsync(()=>editedStudent = null);
+        await InvokeAsync(LoadData);
+    }
+
+    private void OpenDeleteModal(Student student)
+    {
+        deletedStudent = student;
+        deleteModal.Open();
+    }
+
+    private async void DeleteStudent()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Student.Remove(deletedStudent);
+        await context.SaveChangesAsync();
+        await InvokeAsync(() => deletedStudent = null);
+        await InvokeAsync(() => deleteModal.Close());
+        await InvokeAsync(LoadData);
+    }
 }

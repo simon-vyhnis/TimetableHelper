@@ -1,0 +1,109 @@
+﻿@using TimetableHelper.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@code {
+    [Parameter]
+    public Action<List<int>>? SaveMethod { get; set; }
+    [Parameter]
+    public List<Student>? Students { get; set; } = null;
+
+    private string modalClass = "";
+    private string modalDisplay = "none";
+    private bool showBackdrop = false;
+}
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Přiřadit studenty</h3>
+            </div>
+            <div class="modal-body">
+                @if (Students == null)
+                {
+                    <p>Načítání...</p>
+                }
+                else if (Students.Count() == 0)
+                {
+                    <p>Žádní dostupní studenti pro přiřazení. Pro přidání studentů přejděte na stránku Studenti.</p>
+                }
+                else
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Jméno</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in Students)
+                            {
+                                <tr>
+                                    <td>@student.Name</td>
+                                    <td>
+                                        <input type="checkbox" checked="@selectedStudentsIds.Contains(student.Id)" @onchange="(e) => StudentCheckboxChanged(student.Id)"/>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Zavřít</button>
+                <button class="btn btn-primary" @onclick="Save">Přiřadit</button>
+            </div>
+        </div>
+    </div>
+</div>
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private List<int> selectedStudentsIds = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Students == null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            Students = await context.Student.ToListAsync();
+        }
+    }
+
+    public void Open(List<Student> selectedStudents)
+    {
+        modalDisplay = "block";
+        modalClass = "show";
+        showBackdrop = true;
+        selectedStudentsIds = new List<int>(selectedStudents.Count);
+        foreach (var student in selectedStudents)
+            selectedStudentsIds.Add(student.Id);
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+    }
+
+    private void Save()
+    {
+        SaveMethod?.Invoke(selectedStudentsIds);
+    }
+
+    private void StudentCheckboxChanged(int studentId)
+    {
+        if (!selectedStudentsIds.Contains(studentId)) 
+        {
+            selectedStudentsIds.Add(studentId);
+        }
+        else
+        {
+            selectedStudentsIds.Remove(studentId);
+        }
+    }
+}
