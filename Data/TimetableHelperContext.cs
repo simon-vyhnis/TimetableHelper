@@ -21,6 +21,7 @@ namespace TimetableHelper.Data
         public DbSet<Student> Student { get; set; } = default!;
         public DbSet<Room> Room { get; set; } = default!;
         public DbSet<Group> Group { get; set; } = default!;
+        public DbSet<Subject> Subject { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

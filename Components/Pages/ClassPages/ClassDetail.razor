@@ -49,7 +49,7 @@
         {
             <p>Ročník: @clas.Grade.</p>
         }
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-auto">
                 <h3>Studenti</h3>
             </div>
@@ -79,15 +79,56 @@
         {
             <p>Zatím do této třídy nebyli přiřazeni žádní studenti.</p>
         }
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-auto">
                 <h3>Předměty</h3>
             </div>
             <div class="col-auto">
-                <button class="btn btn-primary" @onclick="(()=>addStudentsModal.Open(clas.Students))"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
+                <button class="btn btn-primary" @onclick="OpenSubjectAddModal"><i class="bi bi-plus-square-fill" /> Přidat předmět</button>
             </div>
         </div>
-        <div class="row">
+        @if (clas.Subjects.Count() == 0)
+        {
+            <p>Zatím nebyly přidány žádné skupiny. Pro přidání použijte tlačítko výše.</p>
+        }
+        else
+        {
+            <table class="table table-striped table-bordered table-hover clickable">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Zkratka</th>
+                        <th>Počet hodin</th>
+                        <th>Učitel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var subject in clas.Subjects)
+                    {
+                        <tr>
+                            <td>@subject.Name</td>
+                            <td>@subject.ShortName</td>
+                            <td>@subject.LessonCount</td>
+                            <td>@subject.Teacher.Name</td>
+                            <td class="button-col">
+                                @if (editedSubject == subject.Id)
+                                {
+                                    <button @onclick="SaveSubjectChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                                }
+                                else
+                                {
+                                    <button @onclick="(()=>editedSubject = subject.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                                }
+                            </td>
+                            <td class="button-col">
+                                <button @onclick="(()=>OpenDeleteSubjectModal(subject))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        <div class="row mb-2">
             <div class="col-auto">
                 <h3>Skupiny</h3>
             </div>
@@ -110,11 +151,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var clas in groups)
+                    @foreach (var group in groups)
                     {
-                        <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={clas.Id}"))">
-                            <td>@clas.Name</td>
-                            <td>@clas.Students.Count()</td>
+                        <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
+                            <td>@group.Name</td>
+                            <td>@group.Students.Count()</td>
                             <td></td>
                         </tr>
                     }
@@ -137,14 +178,53 @@
         </Body>
     </AddModal>
 </CascadingValue>
+<CascadingValue Value="@newSubject">
+    <AddModal @ref=addSubjectModal SaveMethod="AddSubject">
+        <Title>Přidat skupinu</Title>
+        <Body>
+            @if (displayNewSubjectError)
+            {
+                <p>Je nutné vybrat učitele!</p>
+            }
+            <div class="mb-3">
+                <label>
+                    Název předmětu
+                    <input class="form-control" @bind="newSubject.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka předmětu
+                    <input class="form-control" @bind="newSubject.ShortName" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Počet hodin
+                    <input class="form-control" @bind="newSubject.LessonCount" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Učitel
+                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.Teacher = t"/>
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
 
 @code {
     private Class? clas;
     private List<Group>? groups;
-    private StudentsModal addStudentsModal;
+    private StudentsModal? addStudentsModal;
     private AddModal? addGroupModal;
+    private AddModal? addSubjectModal;
     private bool editMode = false;
     private Group newGroup = new Group();
+    private Subject newSubject = new Subject();
+    private bool displayNewSubjectError = false;
+    private int editedSubject;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -157,7 +237,11 @@
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        clas = await context.Class.Include(c => c.Students).FirstOrDefaultAsync(m => m.Id == Id);
+        clas = await context.Class
+            .Include(c => c.Students)
+            .Include(c => c.Subjects)
+            .ThenInclude(s => s.Teacher)
+            .FirstOrDefaultAsync(m => m.Id == Id);
         if (clas is null)
         {
             NavigationManager.NavigateTo("notfound");
@@ -209,5 +293,45 @@
         await context.SaveChangesAsync();
         await InvokeAsync(addGroupModal.Close);
         await LoadData();
+    }
+
+    private void OpenSubjectAddModal()
+    {
+        Teacher lastTeacher = newSubject.Teacher;
+        displayNewSubjectError = false;
+        newSubject = new Subject();
+        if(lastTeacher != null)
+        {
+            newSubject.Teacher = lastTeacher;
+        }
+        addSubjectModal.Open();
+    }
+
+    private async void AddSubject(object body)
+    {
+        if (newSubject.Teacher != null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.Attach(newSubject.Teacher);
+            newSubject.Class = await context.Class.FirstOrDefaultAsync(m => m.Id == Id);
+            await context.Subject.AddAsync(newSubject);
+            await context.SaveChangesAsync();
+            await InvokeAsync(addSubjectModal.Close);
+            await LoadData();
+        }
+        else
+        {
+            displayNewSubjectError = true;
+        }
+    }
+
+    private async void SaveSubjectChanges()
+    {
+
+    }
+
+    private void OpenDeleteSubjectModal(Subject subject)
+    {
+        
     }
 }

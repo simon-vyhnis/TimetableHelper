@@ -33,11 +33,11 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var clas in groups)
+            @foreach (var group in groups)
             {
-                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={clas.Id}"))">
-                    <td>@clas.Name</td>
-                    <td>@clas.Students.Count()</td>
+                <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
+                    <td>@group.Name</td>
+                    <td>@group.Students.Count()</td>
                     <td></td>
                 </tr>
             }
