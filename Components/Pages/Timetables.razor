@@ -1,8 +1,10 @@
 ﻿@page "/timetables"
 @using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
+@using TimetableHelper.Data
 @using TimetableHelper.Models
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject TableData TableData
 <PageTitle>Rozvrhy</PageTitle>
 <h2>Rozvrhy</h2>
 @if (classes == null || rooms == null || teachers == null)
@@ -47,7 +49,10 @@ else
         </div>
     </div>
     <div class="row">
-        <Timetable />
+        @if(data != null)
+        {
+            <Timetable data="data"/>
+        }
     </div>
 }
 
@@ -60,17 +65,19 @@ else
     private int? selectedRoom;
     private int? selectedTeacher;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
+    private TimetableDay[]? data;
 
-    private async Task LoadData()
+    protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
         classes = await context.Class.ToListAsync();
         rooms = await context.Room.ToListAsync();
         teachers = await context.Teacher.ToListAsync();
+    }
+
+    private async Task LoadData()
+    {
+        data = await TableData.GetTimetable(selectedClass, selectedRoom, selectedTeacher);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -81,7 +88,7 @@ else
         selectedClass = Int32.Parse(e.Value.ToString());
         if (selectedClass == -1)
             selectedClass = null;
-        await InvokeAsync(StateHasChanged);
+        await LoadData();
     }
 
     private async Task SelectTeacher(ChangeEventArgs e)
@@ -91,7 +98,7 @@ else
         selectedTeacher = Int32.Parse(e.Value.ToString());
         if (selectedTeacher == -1)
             selectedTeacher = null;
-        await InvokeAsync(StateHasChanged);
+        await LoadData();
     }
 
     private async Task SelectRoom(ChangeEventArgs e)
@@ -101,6 +108,6 @@ else
         selectedRoom = Int32.Parse(e.Value.ToString());
         if (selectedRoom == -1)
             selectedRoom = null;
-        await InvokeAsync(StateHasChanged);
+        await LoadData();
     }
 }

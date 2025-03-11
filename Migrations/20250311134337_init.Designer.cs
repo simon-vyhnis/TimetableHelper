@@ -12,8 +12,8 @@ using TimetableHelper.Data;
 namespace TimetableHelper.Migrations
 {
     [DbContext(typeof(TimetableHelperContext))]
-    [Migration("20250311072519_mssql.local_migration_567")]
-    partial class mssqllocal_migration_567
+    [Migration("20250311134337_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

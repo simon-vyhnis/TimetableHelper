@@ -1,7 +1,7 @@
 ﻿@using TimetableHelper.Models
-@if (days == null)
+@if (data == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Načítání...</em></p>
 }
 else
 {
@@ -16,7 +16,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var day in days)
+            @foreach (var day in data)
             {
                 <tr>
                     @for (int i = 0; i < 11; i++)
@@ -37,7 +37,8 @@ else
 }
 
 @code {
-    private TimetableDay[]? days;
+    [Parameter]
+    public TimetableDay[]? data { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
