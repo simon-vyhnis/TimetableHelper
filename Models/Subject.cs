@@ -5,11 +5,26 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
-        public int LessonCount {  get; set; }
+        public int LessonCount { get; set; }
         public Teacher Teacher { get; set; }
         public int TeacherId { get; set; }
         public Class? Class { get; set; }
         public Group? Group { get; set; }
         public List<Room>? SpecialRooms { get; set; }
+        public List<Student> Students
+        {
+            get
+            {
+                if (Class != null)
+                {
+                    return Class.Students;
+                }
+                else if (Group != null)
+                {
+                    return Group.Students;
+                }
+                return new List<Student>();
+            }
+        }
     }
 }
