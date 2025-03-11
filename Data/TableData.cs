@@ -29,7 +29,7 @@ namespace TimetableHelper.Data
             using var context = _dbFactory.CreateDbContext();
             for (int i = 0; i < 5; i++)
             {
-                var day = new TimetableDay();
+                var day = new TimetableDay(i);
                 for (int j = 0; j < 10; j++)
                 {
                     var lessons = await context.Lesson
@@ -48,7 +48,7 @@ namespace TimetableHelper.Data
             using var context = _dbFactory.CreateDbContext();
             for (int i = 0; i < 5; i++)
             {
-                var day = new TimetableDay();
+                var day = new TimetableDay(i);
                 for (int j = 0; j < 10; j++)
                 {
                     var lesson = await context.Lesson
@@ -70,7 +70,7 @@ namespace TimetableHelper.Data
             using var context = _dbFactory.CreateDbContext();
             for (int i = 0; i < 5; i++)
             {
-                var day = new TimetableDay();
+                var day = new TimetableDay(i);
                 for (int j = 0; j < 10; j++)
                 {
                     var lesson = await context.Lesson

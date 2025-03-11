@@ -4,11 +4,11 @@
     {
         public static Dictionary<int, string> DayName = new Dictionary<int, string>
         {
-            { 0, "pondělí"},
-            { 1, "úterý"},
-            { 2, "středa"},
-            { 3, "čtvrtek"},
-            { 4, "pátek"}
+            { 0, "po"},
+            { 1, "út"},
+            { 2, "st"},
+            { 3, "čt"},
+            { 4, "pá"}
         };
         public static string GetNameOfDay(int day)
         {

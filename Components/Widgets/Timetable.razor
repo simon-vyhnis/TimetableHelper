@@ -5,10 +5,10 @@
 }
 else
 {
-    <table class="table">
+    <table class="table table-bordered">
         <thead>
             <tr>
-                <th>0</th>
+                <th></th>
                 @for(int i = 0; i < 11; i++)
                 {
                     <th>@i</th>
@@ -19,7 +19,8 @@ else
             @foreach (var day in data)
             {
                 <tr>
-                    @for (int i = 0; i < 11; i++)
+                    <td>@day.Name</td>
+                    @for (int i = 0; i < day.Lessons.Length; i++)
                     {
                         @if(day.Lessons[i] == null)
                         {
