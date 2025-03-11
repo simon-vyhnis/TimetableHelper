@@ -1,31 +1,106 @@
 ﻿@page "/timetables"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+<PageTitle>Rozvrhy</PageTitle>
 <h2>Rozvrhy</h2>
-<div class="row">
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr třídy">
-            <option selected>Vybrat třídu</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
-    </div>
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr učebny">
-            <option selected>Vybrat učebnu</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
-    </div>
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr učitele">
-            <option selected>Vybrat učitele</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
-    </div>
-</div>
-@code {
+@if (classes == null || rooms == null || teachers == null)
+{
 
+}
+else
+{
+    <div class="row">
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr třídy" @onchange=SelectClass>
+                <option selected="@(selectedClass == null)" value="-1">Vybrat třídu</option>
+                @foreach (var clas in classes)
+                {
+                    <option selected="@(selectedClass == clas.Id)" value="@clas.Id">
+                        @clas.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr učebny" @onchange=SelectRoom>
+                <option selected="@(selectedRoom == null)" value="-1">Vybrat učebnu</option>
+                @foreach (var room in rooms)
+                {
+                    <option selected="@(selectedRoom == room.Id)" value="@room.Id">
+                        @room.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr učitele" @onchange=SelectTeacher>
+                <option selected="@(selectedTeacher == null)" value="-1">Vybrat učitele</option>
+                @foreach(var teacher in teachers)
+                {
+                    <option selected="@(selectedTeacher == teacher.Id)" value="@teacher.Id">
+                        @teacher.Name
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <Timetable />
+    </div>
+}
+
+@code {
+    private List<Class>? classes;
+    private List<Room>? rooms;
+    private List<Teacher>? teachers;
+
+    private int? selectedClass;
+    private int? selectedRoom;
+    private int? selectedTeacher;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = DbFactory.CreateDbContext();
+        classes = await context.Class.ToListAsync();
+        rooms = await context.Room.ToListAsync();
+        teachers = await context.Teacher.ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectClass(ChangeEventArgs e)
+    {
+        selectedRoom = null;
+        selectedTeacher = null;
+        selectedClass = Int32.Parse(e.Value.ToString());
+        if (selectedClass == -1)
+            selectedClass = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectTeacher(ChangeEventArgs e)
+    {
+        selectedRoom = null;
+        selectedClass = null;
+        selectedTeacher = Int32.Parse(e.Value.ToString());
+        if (selectedTeacher == -1)
+            selectedTeacher = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectRoom(ChangeEventArgs e)
+    {
+        selectedClass= null;
+        selectedTeacher = null;
+        selectedRoom = Int32.Parse(e.Value.ToString());
+        if (selectedRoom == -1)
+            selectedRoom = null;
+        await InvokeAsync(StateHasChanged);
+    }
 }
