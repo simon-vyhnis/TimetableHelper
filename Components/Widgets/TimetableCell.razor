@@ -1,0 +1,24 @@
+﻿@using TimetableHelper.Models
+
+@code {
+    [Parameter]
+    public List<Lesson>? data { get; set; }
+}
+
+@if(data == null || data.Count() == 0)
+{
+        <div class ="plus">
+            <b>+</b>
+        </div>
+}
+else
+{
+    foreach(var lesson in data)
+    {
+        <div>
+            <a>@lesson.Room</a>
+            <a><b>@lesson.Subject.ShortName</b></a>
+            <a>@lesson.Subject.Teacher.Name</a>
+        </div>
+    }
+}

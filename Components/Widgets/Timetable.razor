@@ -22,14 +22,9 @@ else
                     <td>@day.Name</td>
                     @for (int i = 0; i < day.Lessons.Length; i++)
                     {
-                        @if(day.Lessons[i] == null)
-                        {
-                            <td></td>
-                        }
-                        else
-                        {
-                            <td></td>
-                        }
+                        <td class="timetable-cell">
+                            <TimetableCell data="day.Lessons[i]"/>
+                        </td>
                     }
                 </tr>
             }
