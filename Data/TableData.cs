@@ -122,12 +122,18 @@ namespace TimetableHelper.Data
             {
                 return await context.Lesson
                     .Where(l => l.Day == day && l.Number == number && l.Subject.TeacherId == teacher)
+                    .Include(l => l.Subject.Teacher)
+                    .Include(l => l.Subject.Group)
+                    .Include(l => l.Subject.Class)
                     .ToListAsync();
             }
             else
             {
                 return await context.Lesson
                     .Where(l => l.Day == day && l.Number == number && l.Room.Id == room)
+                    .Include(l => l.Subject.Teacher)
+                    .Include(l => l.Subject.Group)
+                    .Include(l => l.Subject.Class)
                     .ToListAsync();
             }
         }
@@ -149,19 +155,7 @@ namespace TimetableHelper.Data
                 {
                     bool collides = false;
                     //check if every student is available
-                    var lessons = await context.Lesson
-                        .Where(l => l.Day == day && l.Number == number)
-                        .Include(l => l.Subject.Group.Students)
-                        .Include(l => l.Subject.Class.Students)
-                        .ToListAsync();
-                    foreach (var student in subject.Students)
-                    {
-                        if(lessons.FindAll(l => l.Subject.Students.Contains(student)).Any())
-                        {
-                            collides = true;
-                            break;
-                        }
-                    }
+                    collides = !await CheckStudentsAreAvailable(day, number, subject, context);
                     if (collides)
                         continue;
                     //check if any room is available
@@ -171,7 +165,7 @@ namespace TimetableHelper.Data
                         continue;
                     }
                     //check if the teacher is available
-                    if(!await IsTeacherAvailable(day, number, subject.Teacher))
+                    if (!await IsTeacherAvailable(day, number, subject.Teacher))
                     {
                         collides = true;
                     }
@@ -187,17 +181,99 @@ namespace TimetableHelper.Data
             }
             else if (teacher.HasValue)
             {
-                return await context.Lesson
-                    .Where(l => l.Day == day && l.Number == number && l.Subject.TeacherId == teacher)
+                var subjects = await context.Subject
+                    .Where(s => (s.TeacherId == teacher))
+                    .Where(s => s.LessonCount > s.Lessons.Count())
+                    .Include(s => s.Teacher)
+                    .Include(s => s.Group.Students)
+                    .Include(s => s.Class.Students)
                     .ToListAsync();
+                foreach (var subject in subjects)
+                {
+                    bool collides = false;
+                    //check if every student is available
+                    collides = !await CheckStudentsAreAvailable(day, number, subject, context);
+                    if (collides)
+                        continue;
+                    //check if any room is available
+                    if (!(await GetAvailableRooms(day, number, subject.Students.Count())).Any())
+                    {
+                        collides = true;
+                        continue;
+                    }
+                    //check if the teacher is available
+                    if (!await IsTeacherAvailable(day, number, subject.Teacher))
+                    {
+                        collides = true;
+                    }
+                    if (!collides)
+                    {
+                        var newLesson = new Lesson();
+                        newLesson.Subject = subject;
+                        newLesson.Number = number;
+                        newLesson.Day = day;
+                        result.Add(newLesson);
+                    }
+                }
             }
             else
             {
-                return await context.Lesson
-                    .Where(l => l.Day == day && l.Number == number && l.Room.Id == room)
+                //check if the room is free
+                if(await context.Lesson
+                    .Where(l => l.Room.Id == room && l.Day == day && l.Number == number)
+                    .AnyAsync())
+                {
+                    return result;
+                }
+                var roomObj = await context.Room.FindAsync(room);
+                var subjects = await context.Subject
+                    .Where(s => s.LessonCount > s.Lessons.Count())
+                    .Where(s => s.Students.Count() <= roomObj.Capacity)
+                    .Include(s => s.Teacher)
+                    .Include(s => s.Group.Students)
+                    .Include(s => s.Class.Students)
                     .ToListAsync();
+                foreach (var subject in subjects)
+                {
+                    bool collides = false;
+                    //check if every student is available
+                    collides = !await CheckStudentsAreAvailable(day, number, subject, context);
+                    if (collides)
+                        continue;
+                    //check if the teacher is available
+                    if (!await IsTeacherAvailable(day, number, subject.Teacher))
+                    {
+                        collides = true;
+                    }
+                    if (!collides)
+                    {
+                        var newLesson = new Lesson();
+                        newLesson.Subject = subject;
+                        newLesson.Number = number;
+                        newLesson.Day = day;
+                        newLesson.Room = roomObj;
+                        result.Add(newLesson);
+                    }
+                }
             }
             return result;
+        }
+
+        private async Task<bool> CheckStudentsAreAvailable(int day, int number, Subject subject, TimetableHelperContext context)
+        {
+            var lessons = await context.Lesson
+                        .Where(l => l.Day == day && l.Number == number)
+                        .Include(l => l.Subject.Group.Students)
+                        .Include(l => l.Subject.Class.Students)
+                        .ToListAsync();
+            foreach (var student in subject.Students)
+            {
+                if (lessons.FindAll(l => l.Subject.Students.Contains(student)).Any())
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public async Task<List<Room>> GetAvailableRooms(int day, int number, int capacity)

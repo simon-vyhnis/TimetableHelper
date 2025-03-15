@@ -10,7 +10,7 @@
     private string modalDisplay = "none";
     private bool showBackdrop = false;
 }
-<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+<div class="modal-dialog modal-lg @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -22,7 +22,7 @@
                         <b>Aktuální hodiny</b>
                         @if (currentLessons == null)
                         {
-                            <i>Načítání...</i>
+                            <p><i>Načítání...</i></p>
                         }
                         else if(currentLessons.Count() == 0)
                         {
@@ -53,11 +53,11 @@
                         <b>Hodiny, které je možné přidat</b>
                         @if (availableLessons == null)
                         {
-                            <i>Načítání...</i>
+                            <p><i>Načítání...</i></p>
                         }
                         else if (availableLessons.Count() == 0)
                         {
-                            <i>Nelze přidat žádné nekolidující hodiny</i>
+                            <p><i>Nelze přidat žádné nekolidující hodiny</i></p>
                         }
                         else
                         {
