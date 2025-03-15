@@ -37,6 +37,7 @@ namespace TimetableHelper.Data
                 {
                     var lessons = await context.Lesson
                         .Where(l => l.Day == i && l.Number == j && (l.Subject.Class.Id == clas || l.Subject.Group.Class.Id == clas || l.Subject.Group.Students.Any(s => s.ClassId == clas)))
+                        .Include(l=>l.Room)
                         .Include(l => l.Subject)
                         .Include(l => l.Subject.Teacher)
                         .Include(l => l.Subject.Group)
@@ -60,6 +61,7 @@ namespace TimetableHelper.Data
                 {
                     var lesson = await context.Lesson
                         .Where(l => l.Day == i && l.Number == j && l.Room.Id == room)
+                        .Include(l => l.Room)
                         .Include(l => l.Subject)
                         .Include(l => l.Subject.Teacher)
                         .Include(l => l.Subject.Group)
@@ -86,6 +88,7 @@ namespace TimetableHelper.Data
                 {
                     var lesson = await context.Lesson
                         .Where(l => l.Day == i && l.Number == j && l.Subject.TeacherId == teacher)
+                        .Include(l => l.Room)
                         .Include(l => l.Subject)
                         .Include(l => l.Subject.Teacher)
                         .Include(l => l.Subject.Group)
@@ -224,7 +227,6 @@ namespace TimetableHelper.Data
             using var context = _dbFactory.CreateDbContext();
             lesson.Room = context.Room.Find(lesson.Room.Id);
             lesson.Subject = context.Subject.Find(lesson.Subject.Id);
-            //lesson.Subject.Teacher = context.Teacher.Find(lesson.Subject.Teacher.Id);
             await context.Lesson.AddAsync(lesson);
             await context.SaveChangesAsync();
         }

@@ -98,6 +98,7 @@ h1:focus {
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    max-width: 2em;
 }
 
 .timetable-cell::before {

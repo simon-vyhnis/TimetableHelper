@@ -16,9 +16,20 @@ else
     foreach(var lesson in data)
     {
         <div>
-            <a>@lesson.Room</a>
-            <a><b>@lesson.Subject.ShortName</b></a>
-            <a>@lesson.Subject.Teacher.Name</a>
+            <div class="row">
+                <div class="col text-start">
+                    <a>@lesson.Room.ShortName</a>
+                </div>
+                <div class="col text-end">
+                    <a>@lesson.Subject.GetGroupName()</a>
+                </div>
+            </div>
+            <div class="row text-center">
+                <b>@lesson.Subject.ShortName</b>
+            </div>
+            <div class="row text-center">
+                <span>@lesson.Subject.Teacher.GetInitials()</span>
+            </div>
         </div>
     }
 }
