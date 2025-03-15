@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices;
+using TimetableHelper.Components.Pages;
 using TimetableHelper.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -137,18 +138,22 @@ namespace TimetableHelper.Data
                 var subjects = await context.Subject
                     .Where(s => (s.Class.Id == clas || s.Group.Students.Any(s => s.Class.Id == clas)))
                     .Where(s => s.LessonCount > s.Lessons.Count())
-                    .Include(s => s.Students)
                     .Include(s => s.Teacher)
-                    .Include(s => s.Group)
-                    .Include(s => s.Class)
+                    .Include(s => s.Group.Students)
+                    .Include(s => s.Class.Students)
                     .ToListAsync();
                 foreach (var subject in subjects)
                 {
                     bool collides = false;
-                    //check if every student is available 
+                    //check if every student is available
+                    var lessons = await context.Lesson
+                        .Where(l => l.Day == day && l.Number == number)
+                        .Include(l => l.Subject.Group.Students)
+                        .Include(l => l.Subject.Class.Students)
+                        .ToListAsync();
                     foreach (var student in subject.Students)
                     {
-                        if(await context.Lesson.Where(l => l.Day == day && l.Number == number && l.Subject.Students.Contains(student)).AnyAsync())
+                        if(lessons.FindAll(l => l.Subject.Students.Contains(student)).Any())
                         {
                             collides = true;
                             break;
