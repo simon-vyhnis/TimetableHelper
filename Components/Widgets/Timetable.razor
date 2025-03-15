@@ -22,7 +22,8 @@ else
                     <td>@day.Name</td>
                     @for (int i = 0; i < day.Lessons.Length; i++)
                     {
-                        <td class="timetable-cell">
+                        var lessonNumber = i;
+                        <td class="timetable-cell" @onclick="()=>CellClick.Invoke(day.Number, lessonNumber)">
                             <TimetableCell data="day.Lessons[i]"/>
                         </td>
                     }
@@ -36,8 +37,6 @@ else
     [Parameter]
     public TimetableDay[]? data { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //days = LoadTimeTableDays();
-    }
+    [Parameter]
+    public Action<int, int> CellClick { get; set; }
 }

@@ -1,0 +1,83 @@
+﻿@using TimetableHelper.Data
+@using TimetableHelper.Models
+@inject TableData TableData
+@code {
+    [Parameter]
+    public Action<Room>? SaveMethod { get; set; }
+
+    private string modalClass = "";
+    private string modalDisplay = "none";
+    private bool showBackdrop = false;
+}
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Vybrat učebnu pro hodinu</h3>
+            </div>
+            <div class="modal-body">
+                @if(rooms == null)
+                {
+                    <i>Načítání...</i>
+                }
+                else
+                {
+                    <select class="form-select mb-3" aria-label="Výběr učebny" @onchange=SelectRoom>
+                        <option selected="@(selectedRoom == null)" value="-1">Vybrat učebnu</option>
+                        @foreach (var room in rooms)
+                        {
+                            <option selected="@(selectedRoom?.Id == room.Id)" value="@room.Id">
+                                @room.Name
+                            </option>
+                        }
+                    </select>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Zrušit</button>
+                <button class="btn btn-primary" @onclick="Save" disabled="@(selectedRoom == null)">Vybrat</button>
+            </div>
+        </div>
+    </div>
+</div>
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private Room? selectedRoom = null;
+    private List<Room>? rooms;
+
+    public async void Open(List<Room> rooms)
+    {
+        this.rooms = rooms;
+        modalDisplay = "block";
+        modalClass = "show";
+        showBackdrop = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+    }
+
+    private void SelectRoom(ChangeEventArgs e)
+    {
+        var selection = Int32.Parse(e.Value.ToString());
+        if (selection == -1)
+            selectedRoom = null;
+        else
+            selectedRoom = rooms?.Find(r => r.Id == selection);
+        StateHasChanged();
+    }
+
+    private void Save()
+    {
+        SaveMethod.Invoke(selectedRoom);
+        Close();
+    }
+}

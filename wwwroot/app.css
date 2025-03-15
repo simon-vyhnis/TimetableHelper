@@ -119,6 +119,10 @@ h1:focus {
     height: 200%;
 }
 
+.timetable-cell:not(:hover)::before {
+    transition: width 0.1s ease-in, height 0.1s ease-in;
+}
+
 td:hover .plus {
     opacity: 1;
 }

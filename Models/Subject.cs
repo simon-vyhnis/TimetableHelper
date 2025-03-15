@@ -1,4 +1,6 @@
-﻿namespace TimetableHelper.Models
+﻿using TimetableHelper.Components.Pages;
+
+namespace TimetableHelper.Models
 {
     public class Subject
     {
@@ -11,6 +13,7 @@
         public Class? Class { get; set; }
         public Group? Group { get; set; }
         public List<Room>? SpecialRooms { get; set; }
+        public List<Lesson> Lessons { get; set; }
         public List<Student> Students
         {
             get
@@ -25,6 +28,14 @@
                 }
                 return new List<Student>();
             }
+        }
+        public string? GetGroupName()
+        {
+            if(Group != null)
+                return Group.Name;
+            if(Class != null)
+                return Class.Name;
+            return null;
         }
     }
 }

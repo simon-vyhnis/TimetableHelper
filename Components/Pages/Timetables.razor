@@ -9,7 +9,7 @@
 <h2>Rozvrhy</h2>
 @if (classes == null || rooms == null || teachers == null)
 {
-
+    <i>Načítání...</i>
 }
 else
 {
@@ -51,9 +51,14 @@ else
     <div class="row">
         @if(data != null)
         {
-            <Timetable data="data"/>
+            <Timetable data="data" CellClick="ModifyCell"/>
+        }
+        @if(selectedClass == null && selectedRoom == null && selectedTeacher == null)
+        {
+            <p>Pro zobrazení rozvrhu vyberte třídu, učitele, nebo místnost.</p>
         }
     </div>
+    <ModifyLessonsModal @ref=modal OnClose="() => LoadData()" />
 }
 
 @code {
@@ -66,6 +71,7 @@ else
     private int? selectedTeacher;
 
     private TimetableDay[]? data;
+    private ModifyLessonsModal modal;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,5 +115,10 @@ else
         if (selectedRoom == -1)
             selectedRoom = null;
         await LoadData();
+    }
+
+    private void ModifyCell(int day, int number)
+    {
+        modal.Open(day, number, selectedClass, selectedRoom, selectedTeacher);
     }
 }
