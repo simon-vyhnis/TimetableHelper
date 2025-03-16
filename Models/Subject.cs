@@ -32,7 +32,7 @@ namespace TimetableHelper.Models
         public string? GetGroupName()
         {
             if(Group != null)
-                return Group.Name;
+                return Group.ShortName;
             if(Class != null)
                 return Class.Name;
             return null;

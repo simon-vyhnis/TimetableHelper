@@ -26,6 +26,17 @@
                 {
                     <h2>Skupina @group.Name</h2>
                 }
+                @if (editMode)
+                {
+                    <label>
+                        Zkratka
+                        <input class="form-control" @bind-value="group.ShortName" />
+                    </label>
+                }
+                else
+                {
+                    <p>Zkratka @group.ShortName</p>
+                }
                 @if(group.Class != null)
                 {
                     <p>V rámci třídy @group.Class.Name</p>

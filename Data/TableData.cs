@@ -1,9 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
-using TimetableHelper.Components.Pages;
+﻿using Microsoft.EntityFrameworkCore;
 using TimetableHelper.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TimetableHelper.Data
 {
@@ -145,7 +141,7 @@ namespace TimetableHelper.Data
             if (clas.HasValue)
             {
                 var subjects = await context.Subject
-                    .Where(s => (s.Class.Id == clas || s.Group.Students.Any(s => s.Class.Id == clas)))
+                    .Where(s => (s.Class.Id == clas || s.Group.Students.Any(st => st.Class.Id == clas)))
                     .Where(s => s.LessonCount > s.Lessons.Count())
                     .Include(s => s.Teacher)
                     .Include(s => s.Group.Students)
