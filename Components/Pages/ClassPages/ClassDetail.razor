@@ -308,7 +308,10 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
-        groups = await context.Group.Where(g => g.Class.Id == clas.Id).ToListAsync();
+        groups = await context.Group
+            .Where(g => g.Class.Id == clas.Id)
+            .Include(g => g.Students)
+            .ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

@@ -27,9 +27,9 @@ else
         <thead>
             <tr>
                 <th>Jméno</th>
-                <th>Předměty</th>
                 <th>Cílový úvazek</th>
                 <th>Aktuální úvazek</th>
+                <th>Třídy a skupiny</th>
                 <th class="button-col"></th>
                 <th class="button-col"></th>
             </tr>
@@ -51,7 +51,6 @@ else
                             <a>@teacher.Name</a>
                         }
                     </td>
-                    <td></td>
                     <td>
                         @if (editedTeacher == teacher.Id)
                         {
@@ -65,7 +64,12 @@ else
                             <a>@teacher.TargetHours</a>
                         }
                     </td>
-                    <td></td>
+                    <td>
+                        @teacher.GetLessonCount()
+                    </td>
+                    <td>
+                        @teacher.GetGroupNames()
+                    </td>
                     <td class="button-col">
                         @if (editedTeacher == teacher.Id)
                         {
@@ -119,7 +123,12 @@ else
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        teachers = await context.Teacher.ToListAsync();
+        teachers = await context.Teacher
+            .Include(t => t.Subjects)
+            .ThenInclude(s => s.Group)
+            .Include(t => t.Subjects)
+            .ThenInclude(s => s.Class)
+            .ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

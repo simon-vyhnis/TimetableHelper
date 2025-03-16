@@ -74,7 +74,10 @@ else
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        groups = await context.Group.Where(g => g.ClassId == null).ToListAsync();
+        groups = await context.Group
+                .Where(g => g.ClassId == null)
+                .Include(g => g.Students)
+                .ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

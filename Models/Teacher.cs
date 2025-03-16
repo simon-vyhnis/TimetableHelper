@@ -15,5 +15,30 @@
                                        .Where(w => !string.IsNullOrWhiteSpace(w))
                                        .Select(w => char.ToUpper(w[0])));
         }
+        public int GetLessonCount()
+        {
+            var result = 0;
+            foreach(var subject in Subjects)
+            {
+                result += subject.LessonCount;
+            }
+            return result;
+        }
+        public string GetGroupNames()
+        {
+            var result = "";
+            foreach (var subject in Subjects)
+            {
+                if(!result.Contains(subject.GetGroupName()))
+                {
+                    result += subject.GetGroupName() + ", ";
+                }
+            }
+            if(result.Length > 2)
+            {
+                return result[..^2];
+            }
+            return result;
+        }
     }
 }

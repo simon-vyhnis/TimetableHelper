@@ -272,6 +272,7 @@
     protected async Task SaveData()
     {
         using var context = DbFactory.CreateDbContext();
+        group?.Students.Clear();
         context.Attach(group);
         context.Group.Update(group);
         await context.SaveChangesAsync();
