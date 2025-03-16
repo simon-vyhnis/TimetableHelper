@@ -22,7 +22,7 @@ namespace TimetableHelper.Data
             if (room != null)
                 return await GetRoomTimetable((int)room);
             if (teacher != null)
-                return await GetClassTimetable((int)teacher);
+                return await GetTeacherTimetable((int)teacher);
             return null;
         }
 
