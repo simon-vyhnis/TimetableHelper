@@ -5,12 +5,19 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Učitelé</PageTitle>
-<div class="row">
+<div class="row mb-2">
     <div class="col-auto">
         <h3>Učitelé</h3>
     </div>
     <div class="col-auto">
-        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat učitele</button>
+        <button @onclick="OpenAddModal" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill" /> Přidat učitele
+        </button>
+    </div>
+    <div class="col-auto">
+        <button @onclick="()=>importModal.Open()" class="btn btn-primary">
+            <i class="bi bi-box-arrow-in-down"></i> Importovat učitele
+        </button>
     </div>
 </div>
 @if(teachers == null)
@@ -73,15 +80,21 @@ else
                     <td class="button-col">
                         @if (editedTeacher == teacher.Id)
                         {
-                            <button @onclick="SaveChanges" class="btn btn-primary low-btn"><i class="bi bi-floppy-fill"></i></button>
+                            <button @onclick="SaveChanges" class="btn btn-primary low-btn">
+                                <i class="bi bi-floppy-fill" />
+                            </button>
                         }
                         else
                         {
-                            <button @onclick="(()=>editedTeacher = teacher.Id)" class="btn btn-primary low-btn"><i class="bi bi-pencil-square"></i></button>
+                            <button @onclick="(()=>editedTeacher = teacher.Id)" class="btn btn-primary low-btn">
+                                <i class="bi bi-pencil-square" />
+                            </button>
                         }
                     </td>
                     <td class="button-col">
-                        <button @onclick="(()=>OpenDeleteModal(teacher))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                        <button @onclick="(()=>OpenDeleteModal(teacher))" class="btn btn-primary low-btn">
+                            <i class="bi bi-trash-fill" />
+                        </button>
                     </td>
                 </tr>
             }
@@ -106,11 +119,13 @@ else
         <ItemToDelete>učitele @deletedTeacher?.Name</ItemToDelete>
     </DeleteModal>
 </CascadingValue>
+<ImportTeachersModal SaveMethod="()=>InvokeAsync(LoadData)" @ref=importModal/>
 
 @code {
     List<Teacher>? teachers;
     private AddModal addModal;
     private DeleteModal deleteModal;
+    private ImportTeachersModal importModal;
     public Teacher newTeacher = new Teacher();
     private int? editedTeacher = null;
     private Teacher? deletedTeacher = null;
