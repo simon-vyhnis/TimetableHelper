@@ -29,7 +29,6 @@ else
             <tr>
                 <th>Název</th>
                 <th>Počet studentů</th>
-                <th>Vytvořený rozvrh</th>
             </tr>
         </thead>
         <tbody>
@@ -38,7 +37,6 @@ else
                 <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
                     <td>@group.Name</td>
                     <td>@group.Students.Count()</td>
-                    <td></td>
                 </tr>
             }
         </tbody>

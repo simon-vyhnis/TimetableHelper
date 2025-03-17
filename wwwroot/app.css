@@ -81,7 +81,7 @@ h1:focus {
     cursor: pointer;
 }
 
-.plus {
+.cell-icon {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -107,12 +107,19 @@ h1:focus {
     top: 50%;
     left: 50%;
     width: 0;
-    height: 0;
-    background-color: rgba(0, 128, 0, 0.5); 
+    height: 0; 
     transition: all 0.4s ease-out;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     z-index: 1;
+}
+
+.timetable-cell-green::before {
+    background-color: rgba(0, 128, 0, 0.5);
+}
+
+.timetable-cell-yellow::before {
+    background-color: rgba(130, 128, 0, 0.5);
 }
 
 .timetable-cell:hover::before {
@@ -124,6 +131,6 @@ h1:focus {
     transition: width 0.1s ease-in, height 0.1s ease-in;
 }
 
-td:hover .plus {
+td:hover .cell-icon {
     opacity: 1;
 }
