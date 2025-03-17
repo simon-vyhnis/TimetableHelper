@@ -1,0 +1,46 @@
+﻿@using TimetableHelper.Models
+
+@code {
+    [Parameter]
+    public List<Lesson>? data { get; set; }
+    [Parameter]
+    public Action? OnClickAction { get; set; }
+}
+
+@if(data == null || data.Count() == 0)
+{
+    <td class="timetable-cell timetable-cell-green" @onclick="(() => OnClickAction?.Invoke())">
+        <div>
+            <div class="cell-icon">
+                <b>+</b>
+            </div>
+        </div>
+    </td>
+}
+else
+{
+    foreach(var lesson in data)
+    {
+        <td class="timetable-cell timetable-cell-yellow" @onclick="(() => OnClickAction?.Invoke())">
+            <div>
+                <div class="row">
+                    <div class="col text-start">
+                        <a>@lesson.Room.ShortName</a>
+                    </div>
+                    <div class="col text-end">
+                        <a>@lesson.Subject.GetGroupName()</a>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <b>@lesson.Subject.ShortName</b>
+                </div>
+                <div class="row text-center">
+                    <span>@lesson.Subject.Teacher.GetInitials()</span>
+                </div>
+            </div>
+            <div class="cell-icon">
+                <i class="bi bi-pencil"/>
+            </div>
+        </td>
+    }
+}

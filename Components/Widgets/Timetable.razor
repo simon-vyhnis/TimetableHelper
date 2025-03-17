@@ -1,14 +1,14 @@
 ﻿@using TimetableHelper.Models
-@if (days == null)
+@if (data == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Načítání...</em></p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-bordered">
         <thead>
             <tr>
-                <th>0</th>
+                <th></th>
                 @for(int i = 0; i < 11; i++)
                 {
                     <th>@i</th>
@@ -16,19 +16,14 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var day in days)
+            @foreach (var day in data)
             {
                 <tr>
-                    @for (int i = 0; i < 11; i++)
+                    <td>@day.Name</td>
+                    @for (int i = 0; i < day.Lessons.Length; i++)
                     {
-                        @if(day.Lessons[i] == null)
-                        {
-                            <td></td>
-                        }
-                        else
-                        {
-                            <td></td>
-                        }
+                        var lessonNumber = i;
+                        <TimetableCell data="day.Lessons[i]" OnClickAction="@(()=>CellClick.Invoke(day.Number, lessonNumber))" />
                     }
                 </tr>
             }
@@ -37,10 +32,9 @@ else
 }
 
 @code {
-    private TimetableDay[]? days = new TimetableDay[7];
+    [Parameter]
+    public TimetableDay[]? data { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        //days = LoadTimeTableDays();
-    }
+    [Parameter]
+    public Action<int, int> CellClick { get; set; }
 }

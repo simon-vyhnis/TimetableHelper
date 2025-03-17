@@ -29,7 +29,6 @@ else
             <tr>
                 <th>Název</th>
                 <th>Počet studentů</th>
-                <th>Vytvořený rozvrh</th>
             </tr>
         </thead>
         <tbody>
@@ -38,7 +37,6 @@ else
                 <tr @onclick="@(()=>NavigationManager.NavigateTo($"{NavigationManager.BaseUri}group?id={group.Id}"))">
                     <td>@group.Name</td>
                     <td>@group.Students.Count()</td>
-                    <td></td>
                 </tr>
             }
         </tbody>
@@ -52,6 +50,12 @@ else
                 <label>
                     Označení skupiny
                     <input class="form-control" @bind="newGroup.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka
+                    <input class="form-control" @bind="newGroup.ShortName" />
                 </label>
             </div>
         </Body>
@@ -68,7 +72,10 @@ else
     private async Task LoadData()
     {
         using var context = DbFactory.CreateDbContext();
-        groups = await context.Group.Where(g => g.ClassId == null).ToListAsync();
+        groups = await context.Group
+                .Where(g => g.ClassId == null)
+                .Include(g => g.Students)
+                .ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

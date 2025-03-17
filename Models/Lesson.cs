@@ -1,10 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace TimetableHelper.Models
 {
     public class Lesson
     {
-        public Group Group { get; set; }
-        public Teacher Teacher { get; set; }
+        public int Id { get; set; }
+        public Subject Subject { get; set; }
+        public Room Room { get; set; }
+        public int Day {  get; set; } 
+        public int Number { get; set; }        
     }
 }

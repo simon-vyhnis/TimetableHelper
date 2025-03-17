@@ -1,0 +1,120 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@code {
+    [Parameter]
+    public Action? SaveMethod { get; set; }
+    private string modalClass = "";
+    private string modalDisplay = "none";
+    private bool showBackdrop = false;
+}
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Importovat studenty</h3>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <InputFile OnChange="LoadFile"/>
+                </div>
+                <div class="mb-2">
+                    <i>Ve formátu CSV z programu bakaláři. Formát: student, třída, ...</i>
+                </div>
+                @if(foundStudentsCount > 0)
+                {
+                    <div class="alert alert-success" role="alert">
+                        V nahraném souboru bylo nalezeno @foundStudentsCount studentů, pro @foundClassesCount z nich byla přiřazena třída.
+                    </div>
+                }
+                else if(foundStudentsCount != null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        V nahraném souboru nebyli rozpoznáni žádní studenti. Zkuste zkrontrolovat formátování souboru.
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Zavřít</button>
+                @if (foundStudentsCount > 0)
+                {
+                    <button class="btn btn-primary" @onclick="Save">Přidat studenty</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private int? foundStudentsCount;
+    private int? foundClassesCount;
+    private List<Student>? foundStudents;
+
+    public void Open()
+    {
+        modalDisplay = "block";
+        modalClass = "show";
+        showBackdrop = true;
+        foundStudents = null;
+        foundStudentsCount = null;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+        StateHasChanged();
+    }
+
+    private async void Save()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Student.AddRange(foundStudents);
+        await context.SaveChangesAsync();
+        if(SaveMethod != null)
+            await InvokeAsync(SaveMethod);
+        Close();
+    }
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            foundStudentsCount = 0;
+            return;
+        }
+
+        using var reader = new StreamReader(file.OpenReadStream());
+        var fileContent = await reader.ReadToEndAsync();
+        var parsedContent = fileContent.Split(", ");
+        if (parsedContent.Length < 2 || parsedContent.Length % 2 == 1)
+        {
+            foundStudentsCount = 0;
+            return;
+        }
+        foundStudentsCount = parsedContent.Length / 2;
+        foundClassesCount = 0;
+        foundStudents = new List<Student>(foundStudentsCount ?? 1);
+        using var context = DbFactory.CreateDbContext();
+        for(int i = 0; i < parsedContent.Length; i +=2)
+        {
+            var newStudent = new Student();
+            newStudent.Name = parsedContent[i];
+            var classes = await context.Class.Where(c => c.Name == parsedContent[i + 1]).ToListAsync();
+            if (classes.Any())
+            {
+                newStudent.ClassId = classes[0].Id;
+                foundClassesCount++;
+            }
+            foundStudents.Add(newStudent);
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

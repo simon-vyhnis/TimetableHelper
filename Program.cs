@@ -15,6 +15,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<TableData>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

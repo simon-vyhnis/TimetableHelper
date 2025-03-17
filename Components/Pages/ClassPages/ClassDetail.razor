@@ -223,6 +223,12 @@
                     <input class="form-control" @bind="newGroup.Name" />
                 </label>
             </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka:
+                    <input class="form-control" @bind="newGroup.ShortName" />
+                </label>
+            </div>
         </Body>
     </AddModal>
 </CascadingValue>
@@ -255,7 +261,7 @@
             <div class="mb-3">
                 <label>
                     Učitel
-                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.TeacherId = t.Id"/>
+                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.Teacher = t"/>
                 </label>
             </div>
         </Body>
@@ -302,7 +308,10 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
-        groups = await context.Group.Where(g => g.Class.Id == clas.Id).ToListAsync();
+        groups = await context.Group
+            .Where(g => g.Class.Id == clas.Id)
+            .Include(g => g.Students)
+            .ToListAsync();
         await InvokeAsync(StateHasChanged);
     }
 

@@ -5,7 +5,7 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Třídy</PageTitle>
-<div class="row">
+<div class="row mb-2">
     <div class="col-auto">
         <h2>Třídy</h2>
     </div>
@@ -29,7 +29,6 @@ else
                 <th>Název</th>
                 <th>Ročník</th>
                 <th>Počet studentů</th>
-                <th>Vytvořený rozvrh</th>
             </tr>
         </thead>
         <tbody>
@@ -39,7 +38,6 @@ else
                     <td>@clas.Name</td>
                     <td>@clas.Grade</td>
                     <td>@clas.Students.Count()</td>
-                    <td></td>
                 </tr>
             }
         </tbody>

@@ -5,14 +5,14 @@
 namespace TimetableHelper.Migrations
 {
     /// <inheritdoc />
-    public partial class mssqllocal_migration_468 : Migration
+    public partial class mssqladd_group_shortname : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
                 name: "ShortName",
-                table: "Subject",
+                table: "Group",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
@@ -23,7 +23,7 @@ namespace TimetableHelper.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "ShortName",
-                table: "Subject");
+                table: "Group");
         }
     }
 }

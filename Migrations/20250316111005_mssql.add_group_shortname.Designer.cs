@@ -12,8 +12,8 @@ using TimetableHelper.Data;
 namespace TimetableHelper.Migrations
 {
     [DbContext(typeof(TimetableHelperContext))]
-    [Migration("20250302183329_mssql.local_migration_185")]
-    partial class mssqllocal_migration_185
+    [Migration("20250316111005_mssql.add_group_shortname")]
+    partial class mssqladd_group_shortname
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,11 +75,44 @@ namespace TimetableHelper.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClassId");
 
                     b.ToTable("Group");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Lesson", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("Lesson");
                 });
 
             modelBuilder.Entity("TimetableHelper.Models.Room", b =>
@@ -101,7 +134,12 @@ namespace TimetableHelper.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
 
                     b.ToTable("Room");
                 });
@@ -121,11 +159,55 @@ namespace TimetableHelper.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClassId");
 
+                    b.HasIndex("SubjectId");
+
                     b.ToTable("Student");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Subject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LessonCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("Subject");
                 });
 
             modelBuilder.Entity("TimetableHelper.Models.Teacher", b =>
@@ -172,13 +254,66 @@ namespace TimetableHelper.Migrations
                     b.Navigation("Class");
                 });
 
+            modelBuilder.Entity("TimetableHelper.Models.Lesson", b =>
+                {
+                    b.HasOne("TimetableHelper.Models.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TimetableHelper.Models.Subject", "Subject")
+                        .WithMany("Lessons")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Room", b =>
+                {
+                    b.HasOne("TimetableHelper.Models.Subject", null)
+                        .WithMany("SpecialRooms")
+                        .HasForeignKey("SubjectId");
+                });
+
             modelBuilder.Entity("TimetableHelper.Models.Student", b =>
                 {
                     b.HasOne("TimetableHelper.Models.Class", "Class")
                         .WithMany("Students")
                         .HasForeignKey("ClassId");
 
+                    b.HasOne("TimetableHelper.Models.Subject", null)
+                        .WithMany("Students")
+                        .HasForeignKey("SubjectId");
+
                     b.Navigation("Class");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Subject", b =>
+                {
+                    b.HasOne("TimetableHelper.Models.Class", "Class")
+                        .WithMany("Subjects")
+                        .HasForeignKey("ClassId");
+
+                    b.HasOne("TimetableHelper.Models.Group", "Group")
+                        .WithMany("Subjects")
+                        .HasForeignKey("GroupId");
+
+                    b.HasOne("TimetableHelper.Models.Teacher", "Teacher")
+                        .WithMany("Subjects")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("TimetableHelper.Models.Class", b =>
@@ -186,6 +321,27 @@ namespace TimetableHelper.Migrations
                     b.Navigation("Groups");
 
                     b.Navigation("Students");
+
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Group", b =>
+                {
+                    b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Subject", b =>
+                {
+                    b.Navigation("Lessons");
+
+                    b.Navigation("SpecialRooms");
+
+                    b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("TimetableHelper.Models.Teacher", b =>
+                {
+                    b.Navigation("Subjects");
                 });
 #pragma warning restore 612, 618
         }

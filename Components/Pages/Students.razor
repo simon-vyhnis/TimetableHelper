@@ -5,12 +5,19 @@
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
 <PageTitle>Studenti</PageTitle>
-<div class="row">
+<div class="row mb-2">
     <div class="col-auto">
         <h2>Studenti</h2>
     </div>
     <div class="col-auto">
-        <button @onclick="OpenAddModal" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Přidat studenta</button>
+        <button @onclick="OpenAddModal" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill"></i> Přidat studenta
+        </button>
+    </div>
+    <div class="col-auto">
+        <button @onclick="()=>importModal.Open()" class="btn btn-primary">
+            <i class="bi bi-box-arrow-in-down"></i> Importovat studenty
+        </button>
     </div>
 </div>
 @if (students == null)
@@ -86,10 +93,12 @@ else
         <ItemToDelete>studenta @deletedStudent?.Name</ItemToDelete>
     </DeleteModal>
 </CascadingValue>
+<ImportStudentsModal @ref=importModal SaveMethod="(()=>InvokeAsync(LoadData))"/>
 
 @code {
     List<Student>? students;
     private AddModal addModal;
+    private ImportStudentsModal importModal;
     private DeleteModal deleteModal;
     private Student? deletedStudent = null;
     private int? editedStudent = null;

@@ -1,31 +1,124 @@
 ﻿@page "/timetables"
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Data
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject TableData TableData
+<PageTitle>Rozvrhy</PageTitle>
 <h2>Rozvrhy</h2>
-<div class="row">
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr třídy">
-            <option selected>Vybrat třídu</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
+@if (classes == null || rooms == null || teachers == null)
+{
+    <i>Načítání...</i>
+}
+else
+{
+    <div class="row">
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr třídy" @onchange=SelectClass>
+                <option selected="@(selectedClass == null)" value="-1">Vybrat třídu</option>
+                @foreach (var clas in classes)
+                {
+                    <option selected="@(selectedClass == clas.Id)" value="@clas.Id">
+                        @clas.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr učebny" @onchange=SelectRoom>
+                <option selected="@(selectedRoom == null)" value="-1">Vybrat učebnu</option>
+                @foreach (var room in rooms)
+                {
+                    <option selected="@(selectedRoom == room.Id)" value="@room.Id">
+                        @room.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-sm">
+            <select class="form-select mb-3" aria-label="Výběr učitele" @onchange=SelectTeacher>
+                <option selected="@(selectedTeacher == null)" value="-1">Vybrat učitele</option>
+                @foreach(var teacher in teachers)
+                {
+                    <option selected="@(selectedTeacher == teacher.Id)" value="@teacher.Id">
+                        @teacher.Name
+                    </option>
+                }
+            </select>
+        </div>
     </div>
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr učebny">
-            <option selected>Vybrat učebnu</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
+    <div class="row">
+        @if(data != null)
+        {
+            <Timetable data="data" CellClick="ModifyCell"/>
+        }
+        @if(selectedClass == null && selectedRoom == null && selectedTeacher == null)
+        {
+            <p>Pro zobrazení rozvrhu vyberte třídu, učitele, nebo místnost.</p>
+        }
     </div>
-    <div class="col-sm">
-        <select class="form-select mb-3" aria-label="Výběr učitele">
-            <option selected>Vybrat učitele</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-        </select>
-    </div>
-</div>
-@code {
+    <ModifyLessonsModal @ref=modal OnClose="() => LoadData()" />
+}
 
+@code {
+    private List<Class>? classes;
+    private List<Room>? rooms;
+    private List<Teacher>? teachers;
+
+    private int? selectedClass;
+    private int? selectedRoom;
+    private int? selectedTeacher;
+
+    private TimetableDay[]? data;
+    private ModifyLessonsModal modal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        classes = await context.Class.ToListAsync();
+        rooms = await context.Room.ToListAsync();
+        teachers = await context.Teacher.ToListAsync();
+    }
+
+    private async Task LoadData()
+    {
+        data = await TableData.GetTimetable(selectedClass, selectedRoom, selectedTeacher);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectClass(ChangeEventArgs e)
+    {
+        selectedRoom = null;
+        selectedTeacher = null;
+        selectedClass = Int32.Parse(e.Value.ToString());
+        if (selectedClass == -1)
+            selectedClass = null;
+        await LoadData();
+    }
+
+    private async Task SelectTeacher(ChangeEventArgs e)
+    {
+        selectedRoom = null;
+        selectedClass = null;
+        selectedTeacher = Int32.Parse(e.Value.ToString());
+        if (selectedTeacher == -1)
+            selectedTeacher = null;
+        await LoadData();
+    }
+
+    private async Task SelectRoom(ChangeEventArgs e)
+    {
+        selectedClass= null;
+        selectedTeacher = null;
+        selectedRoom = Int32.Parse(e.Value.ToString());
+        if (selectedRoom == -1)
+            selectedRoom = null;
+        await LoadData();
+    }
+
+    private void ModifyCell(int day, int number)
+    {
+        modal.Open(day, number, selectedClass, selectedTeacher, selectedRoom);
+    }
 }

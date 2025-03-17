@@ -22,6 +22,7 @@ namespace TimetableHelper.Data
         public DbSet<Room> Room { get; set; } = default!;
         public DbSet<Group> Group { get; set; } = default!;
         public DbSet<Subject> Subject { get; set; } = default!;
+        public DbSet<Lesson> Lesson { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,6 +52,13 @@ namespace TimetableHelper.Data
                 .HasOne(e => e.Teacher)
                 .WithMany(e => e.Subjects)
                 .HasForeignKey(e => e.TeacherId);
+
+            modelBuilder.Entity<Lesson>()
+                .HasOne(e => e.Subject)
+                .WithMany(e => e.Lessons);
+
+            modelBuilder.Entity<Lesson>()
+                .HasOne(e => e.Room);
 
         }
     }

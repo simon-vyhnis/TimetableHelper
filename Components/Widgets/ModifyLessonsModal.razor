@@ -1,0 +1,194 @@
+﻿@using TimetableHelper.Data
+@using TimetableHelper.Helpers
+@using TimetableHelper.Models
+@inject TableData TableData
+@code {
+    [Parameter]
+    public Action? OnClose { get; set; }
+
+    private string modalClass = "";
+    private string modalDisplay = "none";
+    private bool showBackdrop = false;
+}
+<div class="modal @modalClass" tabindex="-1" role="dialog" style="display:@modalDisplay; overflow-y: auto;">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upravit čas @NameHelper.GetNameOfDay(day), @number. hodina</h3>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <b>Aktuální hodiny</b>
+                        @if (currentLessons == null)
+                        {
+                            <p><i>Načítání...</i></p>
+                        }
+                        else if (currentLessons.Count() == 0)
+                        {
+                            <p>Zatím žádné hodiny</p>
+                        }
+                        else
+                        {
+                            @foreach (var lesson in currentLessons)
+                            {
+                                <div class="card mt-2">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="row">
+                                                    <p><b>@lesson.Subject.Name</b></p>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col col-auto d-flex align-items-center">
+                                                        <p>@lesson.Subject.GetGroupName()</p>
+                                                    </div>
+                                                    <div class="col col-auto d-flex align-items-center text-right">
+                                                        <p>@lesson.Subject.Teacher.Name</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col col-auto d-flex align-items-center">
+                                                <button @onclick="(()=>DeleteLesson(lesson))" class="btn btn-primary low-btn">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="col">
+                        <b>Hodiny, které je možné přidat</b>
+                        @if (availableLessons == null)
+                        {
+                            <p><i>Načítání...</i></p>
+                        }
+                        else if (availableLessons.Count() == 0)
+                        {
+                            <p><i>Nelze přidat žádné nekolidující hodiny</i></p>
+                        }
+                        else
+                        {
+                            @foreach (var lesson in availableLessons)
+                            {
+                                <div class="card mt-2">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="row">
+                                                    <p><b>@lesson.Subject.Name</b></p>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col col-auto d-flex align-items-center">
+                                                        <p>@lesson.Subject.GetGroupName()</p>
+                                                    </div>
+                                                    <div class="col col-auto d-flex align-items-center text-right">
+                                                        <p>@lesson.Subject.Teacher.Name</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col col-auto d-flex align-items-center">
+                                                <button @onclick="(()=>OpenRoomModal(lesson))" class="btn btn-primary low-btn">
+                                                    <i class="bi bi-plus-square-fill"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Zavřít</button>
+            </div>
+        </div>
+    </div>
+</div>
+<SelectRoomModal SaveMethod="AddLesson" @ref="modal" />
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private List<Lesson>? currentLessons = null;
+    private List<Lesson>? availableLessons = null;
+    private int day, number;
+    private int? clas, teacher, room;
+    private Lesson? newLesson;
+    private SelectRoomModal modal;
+
+    public async void Open(int day, int number, int? clas, int? teacher, int? room)
+    {
+        this.day = day;
+        this.number = number;
+        this.clas = clas;
+        this.teacher = teacher;
+        this.room = room;
+        Show();
+        await InvokeAsync(StateHasChanged);
+        await LoadData();
+    }
+
+    private void Show()
+    {
+        modalDisplay = "block";
+        modalClass = "show";
+        showBackdrop = true;
+    }
+
+    public async Task LoadData()
+    {
+        currentLessons = await TableData.GetCurrentLessons(day, number, clas, teacher, room);
+        availableLessons = await TableData.GetAvailableLessons(day, number, clas, teacher, room);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Close()
+    {
+        Hide();
+        currentLessons = null;
+        availableLessons = null;
+        OnClose?.Invoke();
+    }
+
+    private void Hide()
+    {
+        modalDisplay = "none";
+        modalClass = "";
+        showBackdrop = false;
+    }
+
+    private async Task DeleteLesson(Lesson lesson)
+    {
+        currentLessons = null;
+        availableLessons = null;
+        await InvokeAsync(StateHasChanged);
+        await TableData.DeleteLesson(lesson);
+        await LoadData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenRoomModal(Lesson lesson)
+    {
+        Hide();
+        newLesson = lesson;
+        modal.Open(await TableData.GetAvailableRooms(day, number, lesson.Subject.Students.Count()));
+    }
+
+    private async void AddLesson(Room room)
+    {
+        newLesson.Room = room;
+        currentLessons = null;
+        availableLessons = null;
+        await InvokeAsync(StateHasChanged);
+        await TableData.AddLesson(newLesson);
+        await LoadData();
+        Show();
+        await InvokeAsync(StateHasChanged);
+    }
+}
