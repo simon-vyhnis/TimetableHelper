@@ -5,7 +5,7 @@ using TimetableHelper.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<TimetableHelperContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TimetableHelperContext") ?? throw new InvalidOperationException("Connection string 'TimetableHelperContext' not found.")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("TimetableHelperContext") ?? throw new InvalidOperationException("Connection string 'TimetableHelperContext' not found.")));
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
