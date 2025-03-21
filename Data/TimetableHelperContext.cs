@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using TimetableHelper.Models;
 
 namespace TimetableHelper.Data
 {
-    public class TimetableHelperContext : DbContext
+    public class TimetableHelperContext : IdentityDbContext<User>
     {
         public TimetableHelperContext (DbContextOptions<TimetableHelperContext> options)
             : base(options)
@@ -26,6 +27,8 @@ namespace TimetableHelper.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Class>()
                 .HasMany(e => e.Students)
                 .WithOne(e => e.Class)

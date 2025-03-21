@@ -1,5 +1,5 @@
 html, body {
-    font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Corbel, Arial, Helvetica, sans-serif;
 }
 
 a, .btn-link {
@@ -133,4 +133,21 @@ h1:focus {
 
 td:hover .cell-icon {
     opacity: 1;
+}
+
+.home-img{
+    max-width:50%;
+}
+
+.login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, #0a2a43, #4a90e2);
+}
+
+.white-text{
+    color:azure;
 }

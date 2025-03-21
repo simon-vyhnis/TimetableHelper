@@ -2,6 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TimetableHelper.Data;
+using Microsoft.AspNetCore.Identity;
+using TimetableHelper.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<TimetableHelperContext>(options =>
@@ -15,7 +20,36 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddRazorPages();
+
 builder.Services.AddScoped<TableData>();
+
+builder.Services.AddRazorPages();
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true; 
+    options.Password.RequireLowercase = false;      
+    options.Password.RequireUppercase = false;      
+    options.Password.RequireNonAlphanumeric = false; 
+    options.Password.RequiredLength = 6;           
+})
+    .AddEntityFrameworkStores<TimetableHelperContext>()
+    .AddDefaultTokenProviders();
+
+// Configure Cookie Authentication
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/login";  // Redirect to login if unauthorized
+    options.AccessDeniedPath = "/login"; // Redirect if access denied
+});
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuthenticationStateProvider, TimetableAuthenticationStateProvider>();
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -33,6 +67,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

@@ -3,8 +3,11 @@
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Data
 @using TimetableHelper.Models
+@using Microsoft.AspNetCore.Authorization
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject TableData TableData
+@attribute [Authorize]
+
 <PageTitle>Rozvrhy</PageTitle>
 <h2>Rozvrhy</h2>
 @if (classes == null || rooms == null || teachers == null)
