@@ -151,3 +151,19 @@ td:hover .cell-icon {
 .white-text{
     color:azure;
 }
+
+.home {
+    max-height: 100%;
+}
+
+.nav-scrollable {
+    background: linear-gradient(217deg, #25416c, #4a90e2);
+}
+
+.navbar-top {
+    background-color: #4a90e2;
+}
+
+.home-text {
+    color: #4a90e2;
+}
