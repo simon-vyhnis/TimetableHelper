@@ -1,0 +1,149 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Components.Widgets
+@using TimetableHelper.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserManager<User> UserManager;
+@inject AuthenticationStateProvider AuthStateProvider;
+@attribute [Authorize]
+
+<PageTitle>Uživatelé</PageTitle>
+<div class="row mb-2">
+    <div class="col-auto">
+        <h2>Uživatelé</h2>
+    </div>
+    <div class="col-auto">
+        <button @onclick="OpenAddModal" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill"></i> Přidat uživatele
+        </button>
+    </div>
+</div>                                    
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mb-3" role="alert">
+        @errorMessage
+    </div>
+}
+@if (users == null)
+{
+    <p>Načítání...</p>
+}
+else
+{
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Uživatelské jméno</th>
+                <th class="button-col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>
+                        <p>@user.UserName</p>
+                    </td>
+                    <td class="button-col">
+                        <button @onclick="(()=>OpenDeleteModal(user))" class="btn btn-primary low-btn"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<CascadingValue Value="@newUser">
+    <AddModal @ref=addModal SaveMethod="AddUser">
+        <Title>Přidat uživatele</Title>
+        <Body>
+            <div class="mb-3">
+                <label>
+                    Uživatelské jméno
+                    <input class="form-control" @bind="newUser.UserName" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Heslo
+                    <input class="form-control" @bind="newPassword" />
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+<CascadingValue Value="@deletedUser?.UserName">
+    <DeleteModal @ref=deleteModal DeleteMethod="DeleteUser">
+        <ItemToDelete>uživatele @deletedUser?.UserName</ItemToDelete>
+    </DeleteModal>
+</CascadingValue>
+
+@code {
+    List<User>? users;
+    private AddModal addModal;
+    private DeleteModal deleteModal;
+    private User? deletedUser = null;
+    public User newUser = new User();
+    private string newPassword = "";
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        users = await UserManager.Users.ToListAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenAddModal()
+    {
+        newUser = new User();
+        errorMessage = null;
+        addModal.Open();
+    }
+
+    private async void AddUser(object body)
+    {
+        var result = await UserManager.CreateAsync(newUser, newPassword);
+
+        if (!result.Succeeded)
+        {
+            errorMessage = "Chyba při vytváření nového uživatele. Heslo musí mít alespoň 6 znaků a obsahovat číslici.";
+        }
+        else
+        {
+            await InvokeAsync(addModal.Close);
+            await InvokeAsync(LoadData);
+        }
+    }
+
+    private async Task OpenDeleteModal(User user)
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var loggedInUser = await UserManager.GetUserAsync(authState.User);
+        if(loggedInUser.Id == user.Id)
+        {
+            errorMessage = "Nelze smazat přihlášeného uživatele";
+        }
+        else
+        {
+            deletedUser = user;
+            deleteModal.Open();
+            errorMessage = null;
+        }
+    }
+
+    private async void DeleteUser()
+    {
+        await UserManager.DeleteAsync(deletedUser);
+        await InvokeAsync(() => deletedUser = null);
+        await InvokeAsync(() => deleteModal.Close());
+        await InvokeAsync(LoadData);
+    }
+}

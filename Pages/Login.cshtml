@@ -1,0 +1,92 @@
+﻿@page "/login"
+@model TimetableHelper.Pages.LoginModel
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Identity
+@using TimetableHelper.Components.Pages
+@using TimetableHelper.Models
+@inject NavigationManager NavigationManager
+
+@{
+    ViewData["Title"] = "Přihlášení do Rozvrháře";
+}
+<!DOCTYPE html>
+<html lang="cz">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="TimetableHelper.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+<body>
+    <div class="login d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col white-text">
+                    <h1>Vítejte v rozvrháři!</h1>
+                    <p>Aplikaci pro usnadnění tvorby rozvrhů</p>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            @if (Model.UserCount == 0)
+                            {
+                                <form method="post">
+                                    <input type="hidden" name="FormType" value="CreateUser" />
+                                    <h5 class="card-title"><b>Vytvoření prvního uživatele</b></h5>
+                                    <i class="mb-3">V rámci této instalace systému ještě nebyl vytvořený žádný uživatel. Vytvořte prvního uživatele a poté se pomocí něj můžete přihlásit.</i>
+                                    @if (Model.ErrorMessage != null)
+                                    {
+                                        <div class="alert alert-danger mb-3" role="alert">
+                                            @Model.ErrorMessage
+                                        </div>
+                                    }
+                                    <div class="mb-3">
+                                        <label for="newUsername">Uživatelské jméno:</label>
+                                        <input id="newUsername" class="form-control" asp-for="NewUsername" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newPassword">Heslo:</label>
+                                        <input id="newPassword" type="password" class="form-control" asp-for="NewPassword" />
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Vytvořit</button>
+                                    </div>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post">
+                                    <input type="hidden" name="FormType" value="Login" />
+                                    <h5 class="card-title"><b>Přihlášení</b></h5>
+                                    @if (Model.ErrorMessage != null)
+                                    {
+                                        <div class="alert alert-danger mb-3" role="alert">
+                                            @Model.ErrorMessage
+                                        </div>
+                                    }
+                                    <div class="mb-3">
+                                        <label for="loginUsername">Uživatelské jméno:</label>
+                                        <input id="loginUsername" class="form-control" asp-for="LoginUsername" name="LoginUsername" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="loginPassword">Heslo:</label>
+                                        <input id="loginPassword" type="password" class="form-control" asp-for="LoginPassword" name="LoginPassword"/>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Přihlásit se</button>
+                                    </div>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

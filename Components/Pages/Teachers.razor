@@ -2,8 +2,11 @@
 @using Microsoft.EntityFrameworkCore
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Models
+@using Microsoft.AspNetCore.Authorization
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
+
 <PageTitle>Učitelé</PageTitle>
 <div class="row mb-2">
     <div class="col-auto">

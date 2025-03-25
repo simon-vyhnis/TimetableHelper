@@ -3,8 +3,11 @@
 @using TimetableHelper.Components.Widgets
 @using TimetableHelper.Data
 @using TimetableHelper.Models
+@using Microsoft.AspNetCore.Authorization
 @inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
 @inject TableData TableData
+@attribute [Authorize]
+
 <PageTitle>Rozvrhy</PageTitle>
 <h2>Rozvrhy</h2>
 @if (classes == null || rooms == null || teachers == null)
@@ -52,13 +55,44 @@ else
         @if(data != null)
         {
             <Timetable data="data" CellClick="ModifyCell"/>
+            @if(notAdded != null)
+            {
+                @if(notAdded.Any())
+                {
+                    <h3>Předměty, u nichž zbývá přidat hodiny (@notAdded.Count())</h3>
+                    @foreach(var subject in notAdded)
+                    {
+                        <div class="col col-auto">
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <p><b>@subject.Name</b></p>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col col-auto d-flex align-items-center">
+                                            <p>@subject.GetGroupName()</p>
+                                        </div>
+                                        <div class="col col-auto d-flex align-items-center text-right">
+                                            <p>@subject.Teacher.Name</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <h3>Přidány všechny hodiny ✅</h3>
+                }
+            }
         }
         @if(selectedClass == null && selectedRoom == null && selectedTeacher == null)
         {
             <p>Pro zobrazení rozvrhu vyberte třídu, učitele, nebo místnost.</p>
         }
     </div>
-    <ModifyLessonsModal @ref=modal OnClose="() => LoadData()" />
+    <ModifyLessonsModal @ref=modal OnClose="() => InvokeAsync(LoadData)" />
 }
 
 @code {
@@ -72,6 +106,7 @@ else
 
     private TimetableDay[]? data;
     private ModifyLessonsModal modal;
+    private List<Subject>? notAdded;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +119,14 @@ else
     private async Task LoadData()
     {
         data = await TableData.GetTimetable(selectedClass, selectedRoom, selectedTeacher);
+        if (selectedRoom == null)
+        {
+            notAdded = await TableData.GetNotAddedLessons(selectedClass, selectedTeacher);
+        }
+        else
+        {
+            notAdded = null;
+        }
         await InvokeAsync(StateHasChanged);
     }
 

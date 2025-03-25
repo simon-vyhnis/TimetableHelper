@@ -309,5 +309,31 @@ namespace TimetableHelper.Data
             context.Lesson.Remove(lesson);
             await context.SaveChangesAsync();
         }
+
+        public async Task<List<Subject>> GetNotAddedLessons(int? clas, int? teacher)
+        {
+            using var context = _dbFactory.CreateDbContext();
+            if (clas.HasValue)
+            {
+                return await context.Subject
+                    .Where(s => (s.Class.Id == clas || s.Group.Students.Any(st => st.Class.Id == clas)))
+                    .Where(s => s.LessonCount > s.Lessons.Count())
+                    .Include(s => s.Teacher)
+                    .Include(s => s.Group.Students)
+                    .Include(s => s.Class.Students)
+                    .ToListAsync();
+            }
+            else if (teacher.HasValue)
+            {
+                return await context.Subject
+                    .Where(s => (s.TeacherId == teacher))
+                    .Where(s => s.LessonCount > s.Lessons.Count())
+                    .Include(s => s.Teacher)
+                    .Include(s => s.Group.Students)
+                    .Include(s => s.Class.Students)
+                    .ToListAsync();
+            }
+            return new List<Subject>();
+        }
     }
 }
