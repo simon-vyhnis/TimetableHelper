@@ -1,12 +1,10 @@
 ﻿using TimetableHelper.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using TimetableHelper.Data;
 using Microsoft.AspNetCore.Identity;
 using TimetableHelper.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContextFactory<TimetableHelperContext>(options =>

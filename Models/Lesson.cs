@@ -1,7 +1,4 @@
-﻿using System.Drawing;
-using System.Text.RegularExpressions;
-
-namespace TimetableHelper.Models
+﻿namespace TimetableHelper.Models
 {
     public class Lesson
     {
