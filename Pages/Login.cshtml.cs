@@ -35,6 +35,8 @@ namespace TimetableHelper.Pages
 
         public string? ErrorMessage { get; set; }
 
+        public bool ShowSuccessfulyCreated { get; set; } = false;
+
         public int UserCount { get; set; }
 
         public async Task OnGetAsync()
@@ -44,6 +46,9 @@ namespace TimetableHelper.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            ShowSuccessfulyCreated = false;
+            ErrorMessage = null;
+
             UserCount = await _userManager.Users.CountAsync();
 
             if (FormType == "CreateUser" && UserCount == 0)
@@ -60,7 +65,8 @@ namespace TimetableHelper.Pages
 
                 if (result.Succeeded)
                 {
-                    ErrorMessage = "Uživatel vytvoøen, nyní se mùžete pøihlásit.";
+                    ShowSuccessfulyCreated = true;
+                    UserCount += 1;
                     return Page();
                 }
                 else
