@@ -19,9 +19,9 @@
 }
 else
 {
-    foreach(var lesson in data)
-    {
-        <td class="timetable-cell timetable-cell-yellow" @onclick="(() => OnClickAction?.Invoke())">
+    <td class="timetable-cell timetable-cell-yellow flex align-items-center justify-content-center" @onclick="(() => OnClickAction?.Invoke())">
+        @foreach (var lesson in data)
+        {
             <div>
                 <div class="row">
                     <div class="col text-start">
@@ -38,9 +38,13 @@ else
                     <span>@lesson.Subject.Teacher.GetInitials()</span>
                 </div>
             </div>
-            <div class="cell-icon">
-                <i class="bi bi-pencil"/>
-            </div>
-        </td>
-    }
+            @if (lesson != data.Last())
+            {
+                <hr />
+            }
+        }
+        <div class="cell-icon">
+            <i class="bi bi-pencil"/>
+        </div>
+    </td>
 }
