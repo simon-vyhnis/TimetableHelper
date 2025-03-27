@@ -158,6 +158,8 @@ else
 
     private async void AddTeacher(object body)
     {
+        if (newTeacher.Name == null)
+            return;
         using var context = DbFactory.CreateDbContext();
         await context.Teacher.AddAsync(newTeacher);
         context.SaveChanges();
