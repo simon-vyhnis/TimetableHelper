@@ -78,6 +78,11 @@ namespace TimetableHelper.Pages
             else if (FormType == "Login" && UserCount > 0)
             {
                 // Handle login
+                if (string.IsNullOrWhiteSpace(LoginUsername) || string.IsNullOrWhiteSpace(LoginPassword))
+                {
+                    ErrorMessage = "Zadejte platné pøihlašovací údaje.";
+                    return Page();
+                }
                 var result = await _signInManager.PasswordSignInAsync(LoginUsername, LoginPassword, false, false);
                 if (result.Succeeded)
                 {
