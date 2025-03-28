@@ -48,11 +48,11 @@
                                     }
                                     <div class="mb-3">
                                         <label for="newUsername">Uživatelské jméno:</label>
-                                        <input id="newUsername" class="form-control" asp-for="NewUsername" />
+                                        <input id="newUsername" class="form-control" asp-for="NewUsername" name="NewUsername" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="newPassword">Heslo:</label>
-                                        <input id="newPassword" type="password" class="form-control" asp-for="NewPassword" />
+                                        <input id="newPassword" type="password" class="form-control" asp-for="NewPassword" name="NewPassword" />
                                     </div>
                                     <div>
                                         <button type="submit" class="btn btn-primary">Vytvořit</button>
@@ -70,13 +70,19 @@
                                             @Model.ErrorMessage
                                         </div>
                                     }
+                                    else if (Model.ShowSuccessfulyCreated)
+                                    {
+                                        <div class="alert alert-success mb-3" role="alert">
+                                            ✅ Uživatel vytvořen, nyní se můžete přihlásit.
+                                        </div>
+                                    }
                                     <div class="mb-3">
                                         <label for="loginUsername">Uživatelské jméno:</label>
                                         <input id="loginUsername" class="form-control" asp-for="LoginUsername" name="LoginUsername" />
                                     </div>
                                     <div class="mb-3">
                                         <label for="loginPassword">Heslo:</label>
-                                        <input id="loginPassword" type="password" class="form-control" asp-for="LoginPassword" name="LoginPassword"/>
+                                        <input id="loginPassword" type="password" class="form-control" asp-for="LoginPassword" name="LoginPassword" />
                                     </div>
                                     <div>
                                         <button type="submit" class="btn btn-primary">Přihlásit se</button>

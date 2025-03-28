@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
 using TimetableHelper.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +35,8 @@ namespace TimetableHelper.Pages
 
         public string? ErrorMessage { get; set; }
 
+        public bool ShowSuccessfulyCreated { get; set; } = false;
+
         public int UserCount { get; set; }
 
         public async Task OnGetAsync()
@@ -45,6 +46,9 @@ namespace TimetableHelper.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            ShowSuccessfulyCreated = false;
+            ErrorMessage = null;
+
             UserCount = await _userManager.Users.CountAsync();
 
             if (FormType == "CreateUser" && UserCount == 0)
@@ -61,7 +65,8 @@ namespace TimetableHelper.Pages
 
                 if (result.Succeeded)
                 {
-                    ErrorMessage = "Uživatel vytvoøen, nyní se mùžete pøihlásit.";
+                    ShowSuccessfulyCreated = true;
+                    UserCount += 1;
                     return Page();
                 }
                 else
@@ -73,6 +78,11 @@ namespace TimetableHelper.Pages
             else if (FormType == "Login" && UserCount > 0)
             {
                 // Handle login
+                if (string.IsNullOrWhiteSpace(LoginUsername) || string.IsNullOrWhiteSpace(LoginPassword))
+                {
+                    ErrorMessage = "Zadejte platné pøihlašovací údaje.";
+                    return Page();
+                }
                 var result = await _signInManager.PasswordSignInAsync(LoginUsername, LoginPassword, false, false);
                 if (result.Succeeded)
                 {

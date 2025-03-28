@@ -7,7 +7,7 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<PageTitle>Detail třídy</PageTitle>
+<PageTitle>Detail skupiny</PageTitle>
 
 <div>
     @if (group is null)
@@ -199,7 +199,9 @@
         <Body>
             @if (displayNewSubjectError)
             {
-                <p>Je nutné vybrat učitele!</p>
+                <div class="alert alert-danger mb-3" role="alert">
+                    <p>Je nutné vyplnit všechna pole a vybrat učitele</p>
+                </div>
             }
             <div class="mb-3">
                 <label>
@@ -317,7 +319,7 @@
 
     private async void AddSubject(object body)
     {
-        if (newSubject.Teacher != null)
+        if (newSubject.Teacher != null && newSubject.Name != null && newSubject.ShortName != null)
         {
             using var context = DbFactory.CreateDbContext();
             context.Attach(newSubject.Teacher);

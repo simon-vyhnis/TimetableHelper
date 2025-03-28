@@ -236,11 +236,13 @@
 </CascadingValue>
 <CascadingValue Value="@newSubject">
     <AddModal @ref=addSubjectModal SaveMethod="AddSubject">
-        <Title>Přidat skupinu</Title>
+        <Title>Přidat předmět</Title>
         <Body>
             @if (displayNewSubjectError)
             {
-                <p>Je nutné vybrat učitele!</p>
+                <div class="alert alert-danger mb-3" role="alert">
+                    <p>Je nutné vyplnit všechna pole a vybrat učitele</p>
+                </div>
             }
             <div class="mb-3">
                 <label>
@@ -355,6 +357,8 @@
 
     private async void AddGroup(object body)
     {
+        if (newGroup.Name == null || newGroup.ShortName == null)
+            return;
         using var context = DbFactory.CreateDbContext();
         await context.Group.AddAsync(newGroup);
         await context.SaveChangesAsync();
@@ -376,7 +380,7 @@
 
     private async void AddSubject(object body)
     {
-        if (newSubject.Teacher != null)
+        if (newSubject.Teacher != null && newSubject.Name != null && newSubject.ShortName != null)
         {
             using var context = DbFactory.CreateDbContext();
             context.Attach(newSubject.Teacher);

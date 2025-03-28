@@ -127,6 +127,8 @@ else
 
     private async void AddStudent(object body)
     {
+        if (newStudent.Name == null)
+            return;
         using var context = DbFactory.CreateDbContext();
         await context.Student.AddAsync(newStudent);
         await context.SaveChangesAsync();

@@ -156,6 +156,8 @@ else
 
     private async void AddRoom(object body)
     {
+        if (newRoom.Name == null || newRoom.ShortName == null || newRoom.Capacity == null)
+            return;
         using var context = DbFactory.CreateDbContext();
         await context.Room.AddAsync(newRoom);
         context.SaveChanges();

@@ -70,6 +70,11 @@ else
     List<Class>? classes;
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         using var context = DbFactory.CreateDbContext();
         classes = await context.Class.Include(c => c.Students).ToListAsync();
     }
@@ -83,10 +88,13 @@ else
     }
     private async void AddClass(object body)
     {
+        if (newClass.Name == null || newClass.Grade == null)
+            return;
         using var context = DbFactory.CreateDbContext();
         await context.Class.AddAsync(newClass);
         context.SaveChanges();
         modal.Close();
-        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        await LoadData();
+        await InvokeAsync(StateHasChanged);
     }
 }
