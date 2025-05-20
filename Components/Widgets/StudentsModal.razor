@@ -32,6 +32,7 @@
                         <thead>
                             <tr>
                                 <th>Jméno</th>
+                                <th>Třída</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -40,6 +41,7 @@
                             {
                                 <tr>
                                     <td>@student.Name</td>
+                                    <td>@student.Class?.Name</td>
                                     <td>
                                         <input type="checkbox" checked="@selectedStudentsIds.Contains(student.Id)" @onchange="(e) => StudentCheckboxChanged(student.Id)"/>
                                     </td>
@@ -69,7 +71,7 @@
         if (Students == null)
         {
             using var context = DbFactory.CreateDbContext();
-            Students = await context.Student.ToListAsync();
+            Students = await context.Student.Include(s => s.Class).ToListAsync();
         }
     }
 

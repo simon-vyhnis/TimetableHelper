@@ -177,7 +177,14 @@
     {
         Hide();
         newLesson = lesson;
-        modal.Open(await TableData.GetAvailableRooms(day, number, lesson.Subject.Students.Count()));
+        if(lesson.Room == null)
+        {
+            modal.Open(await TableData.GetAvailableRooms(day, number, lesson.Subject.Students.Count()));
+        }
+        else
+        {
+            AddLesson(lesson.Room);
+        }
     }
 
     private async void AddLesson(Room room)

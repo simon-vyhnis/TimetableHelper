@@ -1,0 +1,87 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using TimetableHelper.Models
+@inject IDbContextFactory<TimetableHelper.Data.TimetableHelperContext> DbFactory
+
+<CascadingValue Value="@newSubject">
+    <AddModal @ref=modal SaveMethod="AddSubject">
+        <Title>Přidat předmět</Title>
+        <Body>
+            @if (displayNewSubjectError)
+            {
+                <div class="alert alert-danger mb-3" role="alert">
+                    <p>Je nutné vyplnit všechna pole a vybrat učitele</p>
+                </div>
+            }
+            <div class="mb-3">
+                <label>
+                    Název předmětu
+                    <input class="form-control" @bind="newSubject.Name" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Zkratka předmětu
+                    <input class="form-control" @bind="newSubject.ShortName" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Počet hodin
+                    <input class="form-control" @bind="newSubject.LessonCount" />
+                </label>
+            </div>
+            <div class="mb-3">
+                <label>
+                    Učitel
+                    <TeacherSelect SelectedTeacherId="newSubject.Teacher?.Id" SelectTeacherMethod="t => newSubject.Teacher = t"/>
+                </label>
+            </div>
+        </Body>
+    </AddModal>
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public Action? SaveMethod { get; set; }
+    [Parameter]
+    public int? GroupId { get; set; }
+    [Parameter]
+    public int? ClassId { get; set; }
+    private AddModal? modal;
+    private Subject newSubject = new Subject();
+    private bool displayNewSubjectError = false;
+
+    public void Open()
+    {
+        Teacher lastTeacher = newSubject.Teacher;
+        displayNewSubjectError = false;
+        newSubject = new Subject();
+        if (lastTeacher != null)
+        {
+            newSubject.Teacher = lastTeacher;
+        }
+        modal.Open();
+    }
+
+    private async void AddSubject(object body)
+    {
+        if (newSubject.Teacher != null && newSubject.Name != null && newSubject.ShortName != null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.Attach(newSubject.Teacher);
+            if(ClassId != null)
+                newSubject.Class = await context.Class.FirstOrDefaultAsync(m => m.Id == ClassId);
+            else
+                newSubject.Group = await context.Group.FirstOrDefaultAsync(m => m.Id == GroupId);
+
+            await context.Subject.AddAsync(newSubject);
+            await context.SaveChangesAsync();
+            await InvokeAsync(modal.Close);
+            SaveMethod?.Invoke();
+        }
+        else
+        {
+            displayNewSubjectError = true;
+        }
+    }
+}
